@@ -1,0 +1,230 @@
+---
+- name:  Check if server certificates exist
+  find:
+    paths: "roles/image-registry-deploy/files/certs/dev/d{{deployment_number}}/server"
+    recurse: no
+  delegate_to: localhost
+  register: certificates_exists
+
+
+- name: Get latest DoD CA Certs
+  shell: |
+    bash getDoDCerts.sh "dev/d{{ deployment_number }}"
+  delegate_to: localhost
+  become: false
+  args:
+    chdir: "roles/image-registry-deploy/files/scripts"
+
+- name: Generate self-signed server certificates
+  shell: |
+    bash gen_certificates.sh "dev" "{{ deployment_number }}"
+  delegate_to: localhost
+  become: false
+  args:
+    chdir: "roles/image-registry-deploy/files/scripts/generate_certs"
+  when: certificates_exists.files | length == 0
+
+- name: Copy DoD CA certs
+  copy:
+    src: "certs/dev/d{{deployment_number}}/trustca/"
+    dest: "/etc/pki/ca-trust/source/anchors"
+    owner: root
+    group: root
+  become: true
+
+- name: Copy CA certs
+  copy:
+    src: "certs/certificate-authority/server-cacert.crt"
+    dest: "/etc/pki/ca-trust/source/anchors"
+    owner: root
+    group: root
+  become: true
+
+- name: Update system ca trusted certs.
+  command: "update-ca-trust extract"
+  become: true
+
+
+- name: Copy server certs
+  copy:
+    src: "certs/dev/d{{deployment_number}}/server/{{ image_registry_fqdn }}.crt"
+    dest: "/opt/{{ image_registry_fqdn }}.crt"
+    owner: root
+    group: root
+  become: true
+
+- name: Copy server keys
+  copy:
+    src: "certs/dev/d{{deployment_number}}/server/{{ image_registry_fqdn }}.key"
+    dest: "/opt/{{ image_registry_fqdn }}.key"
+    owner: root
+    group: root
+  become: true
+
+- name: Create cert directory
+  file:
+    state: directory
+    path: "/etc/docker/certs.d/{{ image_registry_fqdn }}"
+  delegate_to: localhost
+
+- name: Create cert directory
+  file:
+    state: directory
+    path: "/etc/docker/certs.d/services.csa.sample.sample.mil"
+  delegate_to: localhost
+
+- name: Copy ca certs
+  copy:
+    src: "certs/certificate-authority/server-cacert.crt"
+    dest: "/etc/docker/certs.d/{{ image_registry_fqdn }}/ca.crt"
+    owner: root
+    group: root
+  become: true
+  delegate_to: localhost
+
+- name: Create a k8s namespace
+  kubernetes.core.k8s:
+    name: docker-registry
+    api_version: v1
+    kind: Namespace
+    state: present
+  run_once: true
+
+- name: Delete existing Image Registry pull secret
+  command: "kubectl delete secret image-pull-secret -n docker-registry"
+  ignore_errors: true
+  run_once: true
+
+- name: Create Image Registry pull secret
+  shell: |
+    export AA_ARTIFACTORY_USERNAME={{ osa_secrets.artifactoryUser }}
+    export AA_ARTIFACTORY_PASSWORD={{ osa_secrets.artifactoryPassword }}
+    kubectl create secret docker-registry image-pull-secret --docker-server="{{ registry_url }}" --docker-username=$AA_ARTIFACTORY_USERNAME --docker-password=$AA_ARTIFACTORY_PASSWORD --namespace docker-registry
+  run_once: true
+
+
+# - name: Create registry-credentials secret
+#   k8s:
+#     definition: "{{ lookup('template', registry_secret_manifest) }}"
+#   environment:
+#     KUBECONFIG: /etc/kubernetes/admin.conf
+
+# - name: Create Image Registry pull secret
+#   kubernetes.core.k8s:
+#     state: present
+#     definition:
+#       apiVersion: v1
+#       kind: Secret
+#       metadata:
+#         name: image-pull-secret
+#         namespace: docker-registry
+#       type: kubernetes.io/dockerconfigjson
+#       data:
+#         .dockerconfigjson: "{{ lookup('template', docker_config_snippet) | to_json | b64encode }}"
+#   environment:
+#     KUBECONFIG: /etc/kubernetes/admin.conf
+#   run_once: true
+
+- name: Attach Image Pull secret to namespace default account
+  command: >
+    kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "image-pull-secret"}]}' --namespace=docker-registry
+  run_once: true
+
+
+- name: Get image registry cert
+  slurp:
+    src: /opt/{{ image_registry_fqdn }}.crt
+  register: registry_cert
+
+- name: Get image registry key
+  slurp:
+    src: /opt/{{ image_registry_fqdn }}.key
+  register: registry_key
+
+- name: Image Registry TLS secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      type: kubernetes.io/tls
+      metadata:
+        name: "registry-cert"
+        namespace: "docker-registry"
+      data:
+        tls.crt: "{{ registry_cert.content }}"
+        tls.key: "{{ registry_key.content }}"
+  run_once: true
+
+
+# - name: Create Image Registry TLS secret
+#   command: >
+#     kubectl create secret tls registry-cert
+#     --cert=/opt/{{ image_registry_fqdn }}.crt
+#     --key=/opt/{{ image_registry_fqdn }}.key
+#     --namespace=docker-registry
+#   environment:
+#     KUBECONFIG: /etc/kubernetes/admin.conf
+#   run_once: true
+
+- name: Copy Registry Container files
+  copy:
+    src: "{{ item }}"
+    dest: "/opt/{{ item }}"
+  loop:
+    - registry-pvc.yaml
+    - registry-svc.yaml
+    - registry-deploy.yaml
+    - registry-config.yaml
+
+# - name: Open Firewalld port for https
+#   ansible.posix.firewalld:
+#     port: "{{ https_port }}/tcp"
+#     permanent: true
+#     state: enabled
+
+# - name: Open Firewalld Port
+#   command: firewall-cmd  --add-port={{ item }} --permanent
+#   loop:
+#     -  "{{ https_port }}/tcp"
+#     - "5000/tcp"
+
+- name: Add registry-ingress.yaml
+  template:
+    src: registry-ingress.yaml.j2
+    dest: /opt/registry-ingress.yaml
+    owner: root
+    group: root
+    mode: '0644'
+
+# - name: Add registry-values.yaml
+#   template:
+#     src: registry-values.yaml.j2
+#     dest: /opt/registry-values.yaml
+#     owner: root
+#     group: root
+#     mode: '0644'
+
+# - name: Deploy Docker Registry
+#   kubernetes.core.helm:
+#     name: docker-registry
+#     binary_path: /usr/local/bin/helm
+#     chart_ref: docker-registry
+#     chart_repo_url: https://helm.twun.io
+#     release_namespace: docker-registry
+#     create_namespace: false
+#     values_files:
+#       - /opt/registry-values.yaml
+#   run_once: true
+
+- name: Deploy Docker Registry
+  command: kubectl apply -f {{ item }}
+  loop:
+    - /opt/registry-config.yaml
+    - /opt/registry-pvc.yaml
+    - /opt/registry-svc.yaml
+    - /opt/registry-ingress.yaml
+    - /opt/registry-deploy.yaml
+
+# - name: Reboot system
+#   reboot:

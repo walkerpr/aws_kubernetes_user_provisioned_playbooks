@@ -1,0 +1,30 @@
+- name: Install packages
+  command: dnf install {{ item }} -y
+  loop:
+    - firewalld
+
+- name: Enable firewalld service
+  systemd_service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Open Firewalld Port for Kubernetes
+  command: firewall-cmd  --add-port={{ item }} --permanent
+  loop:
+    - 6443/tcp
+    - 2379-2380/tcp
+    - 10250/tcp
+    - 10257/tcp
+    - 10248/tcp
+    - 10259/tcp
+    - 8472/tcp
+    - 443/tcp
+
+- name: Enable Masquerading for Firewalld to allow NAT kubernetes traffic
+  command: firewall-cmd  --add-masquerade --permanent
+
+- name: Reload firewalld
+  service:
+    name: firewalld
+    state: reloaded

@@ -1,0 +1,17 @@
+---
+# vars file for stig-manifest-updates
+audit_log_path: "/var/log/kubernetes/audit/kube-apiserver-audit.log"
+audit_policy_file: "/etc/kubernetes/k8s-stigs/audit-policy.yaml"
+audit_log_maxage: "30"
+audit_log_maxbackup: "10"
+audit_log_maxsize: "100"
+admission_control_file: "/etc/kubernetes/k8s-stigs/admission-config.yaml"
+anonymous_auth: "false"
+authorization_mode: "Node,RBAC"
+admission_plugins: "NodeRestriction,PodSecurity"
+request_timeout: "30s"
+tls_min_version: "VersionTLS12"
+tls_cipher_suites: "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
+cluster_name: "kubernetes"
+config_tls_cert: "/var/lib/kubelet/pki/kubelet.crt"
+config_tls_key: "/var/lib/kubelet/pki/kubelet.key"

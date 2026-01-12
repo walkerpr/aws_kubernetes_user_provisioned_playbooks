@@ -1,0 +1,57 @@
+---
+# vars file for kubernetes-cert-rotation
+
+k8s_conf_certs:
+  - cer: "kubernetes-admin.cer"
+    crt: "admin.crt"
+  - cer: "kubernetes-super-admin.cer"
+    crt: "super-admin.crt"
+  - cer: "kube-controller-manager.cer"
+    crt: "controller-manager.crt"
+  - cer: "kubelet.cer"
+    crt: "kubelet.crt"
+  - cer: "kube-scheduler.cer"
+    crt: "scheduler.crt"
+
+k8s_pki_certs:
+  - cer: "kube-apiserver.cer"
+    crt: "apiserver.crt"
+  - cer: "kube-apiserver-etcd-client.cer"
+    crt: "apiserver-etcd-client.crt"
+  - cer: "kube-apiserver-kubelet-client.cer"
+    crt: "apiserver-kubelet-client.crt"
+  - cer: "front-proxy-client.cer"
+    crt: "front-proxy-client.crt"
+
+k8s_etcd_certs:
+  - cer: "kube-etcd-healthcheck-client.cer"
+    crt: "healthcheck-client.crt"
+  - cer: "peer.cer"
+    crt: "peer.crt"
+  - cer: "server.cer"
+    crt: "server.crt"
+
+k8s_ca_certs:
+- crt: "/etc/kubernetes/pki/ca.crt"
+- crt: "/etc/kubernetes/pki/front-proxy-ca.crt"
+- crt: "/etc/kubernetes/pki/etcd/ca.crt"
+
+k8s_conf_files:
+  - file: "admin.conf"
+    user: "kubernetes-admin" 
+    crt: "admin.crt"
+  - file: "super-admin.conf"
+    user: "kubernetes-super-admin"
+    crt: "super-admin.crt" 
+  - file: "kubelet.conf"
+    user: "system:node:{{ hostvars['cp']['ansible_host'] }}"
+    crt: "kubelet.crt"
+  - file: "controller-manager.conf"
+    user: "system:kube-controller-manager"
+    crt: "controller-manager.crt"
+  - file: "scheduler.conf"
+    user: "system:kube-scheduler"
+    crt: "scheduler.crt"
+
+k8s_cluster_context: "kubernetes-admin@kubernetes"
+k8s_cluster_name: "kubernetes"

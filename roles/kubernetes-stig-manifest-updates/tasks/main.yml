@@ -1,0 +1,56 @@
+---
+# tasks file for kubernetes-stig-manifest-updates
+- name: Update Static pod manifest files with stig'd copies
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/kubernetes/manifests/{{ item }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - kube-apiserver.yaml
+    - kube-controller-manager.yaml
+    - kube-scheduler.yaml
+    - etcd.yaml
+
+- name: Update Kubelet config with stig'd copy
+  template:
+    src: config.yaml.j2
+    dest: /var/lib/kubelet/config.yaml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Create k8s-stigs directory
+  file:
+    path: /etc/kubernetes/k8s-stigs
+    state: directory
+    mode: '0755'
+
+- name: Add Admission Config file
+  copy:
+    src: admission-config.yaml
+    dest: /etc/kubernetes/k8s-stigs/admission-config.yaml
+
+- name: Add Audit Policy file
+  copy:
+    src: audit-policy.yaml
+    dest: "/etc/kubernetes/k8s-stigs/audit-policy.yaml"
+
+- name: Restart Kubelet service
+  systemd_service:
+    name: kubelet
+    state: restarted
+    daemon_reload: true
+    daemon_reexec: true
+
+- name: Restart Kube Proxy Daemonset
+  command: kubectl rollout restart daemonset kube-proxy -n kube-system
+
+
+- name: Restart flannel Daemonset
+  command: kubectl rollout restart daemonset kube-flannel-ds -n kube-flannel
+
+
+- name: Restart CoreDNS Deployment
+  command: kubectl rollout restart deployment coredns -n kube-system

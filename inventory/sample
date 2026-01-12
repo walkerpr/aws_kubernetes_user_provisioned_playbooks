@@ -1,0 +1,35 @@
+[all:vars]
+ansible_ssh_private_key_file="~/.ssh/deployment-{{ deployment_number }}.key"
+default_domain="{{ deployment_number }}.dev.sample.dev"
+containerd_version="2.1.4"
+runc_version="1.3.2"
+cni_version="1.8.0"
+java_version="21"
+kubernetes_version="1.34"
+aws_region="us-gov-west-1"
+use_lb_endpoint="true"
+ansible_user="ec2-user"
+
+
+[k8s_cluster:children]
+cp_nodes
+
+[k8s_cluster:vars]
+api_port=6443
+https_port=443
+http_ingress_port=32080
+https_ingress_port=32443
+istio_ingress_port=31443
+image_registry_fqdn="image-registry.apps.{{ default_domain }}"
+sample_e2_fqdn="application-sample.apps.{{ default_domain }}"
+ansible_python_interpreter= /usr/bin/python3
+
+[cp_nodes]
+cp ansible_host="cp-0.{{ default_domain }}" ansible_python_interpreter="/usr/bin/python3.12"
+
+[worker_nodes]
+worker ansible_host="worker-0.{{ default_domain }}"
+
+
+[lb_nodes]
+lb ansible_host="api.{{ default_domain }}" api_port=6443

@@ -1,0 +1,3 @@
+---
+# vars file for kubernetes-install
+flannel_subnet: "10.244.0.0/16"

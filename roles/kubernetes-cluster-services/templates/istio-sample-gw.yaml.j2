@@ -1,0 +1,38 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+ name: httpd-gateway
+ namespace: application-sample
+spec:
+ selector:
+   istio: ingress
+ servers:
+ - port:
+     number: 443
+     name: tls
+     protocol: TLS
+   tls:
+     mode: PASSTHROUGH
+   hosts:
+   - "{{ aa_e2_fqdn }}"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+ name: httpd-vs
+ namespace: application-sample
+spec:
+ hosts:
+ - "{{ aa_e2_fqdn }}"
+ gateways:
+ - httpd-gateway
+ tls:
+ - match:
+   - port: 443
+     sniHosts:
+     - "{{ aa_e2_fqdn }}"
+   route:
+   - destination:
+       host: httpd.application-sample.svc.cluster.local
+       port:
+         number: 443

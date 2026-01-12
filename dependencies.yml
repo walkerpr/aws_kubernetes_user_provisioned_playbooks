@@ -1,0 +1,34 @@
+- hosts: localhost
+  tasks:
+    - include_role:
+        name: dependencies
+        tasks_from: packages.yml
+
+- hosts: localhost
+  tasks:
+    - include_role:
+        name: dependencies
+        tasks_from: aws.yml
+
+- hosts: localhost
+  vars:
+    ansible_ssh_private_key_file: "~/.ssh/deployment-{{ deployment_number }}.key"
+  tasks:
+    - include_role:
+        name: dependencies
+        tasks_from: ssh.yml
+
+- hosts: localhost
+  tasks:
+    - include_role:
+        name: dependencies
+        tasks_from: docker.yml
+  become: true
+
+- hosts: cp
+  tasks:
+    - include_role:
+        name: dependencies
+        tasks_from: kubernetes.yml
+  become: true
+  become_user: root

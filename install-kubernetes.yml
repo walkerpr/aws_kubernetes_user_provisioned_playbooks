@@ -1,0 +1,10 @@
+---
+    - import_playbook: dependencies.yml
+    - import_playbook: fips.yml
+    - import_playbook: kubernetes-preinstall-configs.yml
+    - import_playbook: container-runtime-install.yml
+    - import_playbook: kubernetes-install.yml
+    - import_playbook: kubernetes-cluster-services.yml
+    - import_playbook: image-registry-deploy.yml
+    - import_playbook: kubernetes-firewalld.yml
+    - import_playbook: kubernetes-install-cleanup.yml

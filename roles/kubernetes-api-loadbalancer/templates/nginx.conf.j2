@@ -1,0 +1,59 @@
+user  nginx;
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log notice;
+pid        /run/nginx.pid;
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    include /etc/nginx/conf.d/*.conf;
+}
+
+
+stream {
+    map_hash_bucket_size 128;
+    map $ssl_preread_server_name $backend {
+        {{ aa_e2_fqdn }} istio_backend;
+        default ingress_https_backend;
+    }
+    upstream kube_api {
+        server {{ hostvars['cp']['ansible_host'] }}:{{ api_port }};
+    }
+    upstream istio_backend {
+        server {{ hostvars['cp']['ansible_host'] }}:{{ istio_ingress_port }};
+    }
+    upstream ingress_https_backend {
+        server {{ hostvars['cp']['ansible_host'] }}:{{ https_ingress_port }};
+    }
+    server {
+        listen {{ https_port }};
+        proxy_pass $backend;
+        ssl_preread on;
+    }
+    server {
+        listen {{ api_port }};
+        proxy_pass kube_api;
+        ssl_preread on;
+    }
+
+}

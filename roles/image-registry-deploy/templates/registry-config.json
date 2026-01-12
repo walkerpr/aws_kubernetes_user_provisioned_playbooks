@@ -1,0 +1,9 @@
+{
+  "auths": {
+    "{{ registry_url }}": {
+      "username": "{{ osa_secrets.artifactoryUser }}",
+      "password": "{{ osa_secrets.artifactoryPassword }}",
+      "auth": "{{ (osa_secrets.artifactoryUser + ':' + osa_secrets.artifactoryPassword) | b64encode }}"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+---
+# vars file for container-runtime-install
+kubernetes_downloads:
+  - src: "https://github.com/containerd/containerd/releases/download/v{{containerd_version}}/containerd-{{containerd_version}}-linux-{{ processor_type }}.tar.gz"
+    dest: "/opt/containerd-{{containerd_version}}-linux-{{ processor_type }}.tar.gz"
+  - src: "https://raw.githubusercontent.com/containerd/containerd/main/containerd.service"
+    dest: "/opt/containerd.service"
+  - src: "https://github.com/opencontainers/runc/releases/download/v{{runc_version}}/runc.{{ processor_type }}"
+    dest: "/opt/runc.{{ processor_type }}"
+  - src: "https://github.com/containernetworking/plugins/releases/download/v{{cni_version}}/cni-plugins-linux-{{ processor_type }}-v{{cni_version}}.tgz"
+    dest: "/opt/cni-plugins-linux-{{ processor_type }}-v{{cni_version}}.tgz"
+  - src: "https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml"
+    dest: "/opt/kube-flannel.yml"

@@ -1,0 +1,8 @@
+---
+- hosts: cp
+  become: true
+  become_user: root
+  roles:
+    - image-registry-deploy
+  vars_files:
+    - roles/image-registry-deploy/vars/secrets.yml

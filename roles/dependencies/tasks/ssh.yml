@@ -1,0 +1,33 @@
+---
+
+- name: Get ssh key id
+  command: >
+    aws ssm get-parameter --name /sample/ec2/sample-deployment-{{ deployment_number }}/ec2/default-key/id --query Parameter.Value --with-decryption --output=text
+  register: keyId
+
+- name: Get ssh key
+  command: >
+    aws ssm get-parameter --name /ec2/keypair/{{ keyId.stdout }} --query Parameter.Value --with-decryption --output=text
+  register: sshKey
+
+- name: Create ssh key file
+  template:
+    src: templates/ssh.j2
+    dest: "{{ ansible_ssh_private_key_file }}"
+    mode: '700'
+
+- name: Delete known_hosts file
+  file:
+    path: ~/.ssh/known_hosts
+    state: absent
+
+- name: Get ssh key id
+  command: >
+    aws ssm get-parameter --name /sample/ec2/sample-central-services/ec2/default-key/id --query Parameter.Value --with-decryption --output=text
+  register: keyId
+- name: Get ssh key
+  shell: |
+    aws ssm get-parameter --name /ec2/keypair/{{ keyId.stdout }}/public  --query Parameter.Value --with-decryption --output=text > ~/.ssh/sample-central-services.key.pub
+- name: Get ssh key
+  shell: |
+    aws ssm get-parameter --name /ec2/keypair/{{ keyId.stdout }} --query Parameter.Value --with-decryption --output=text > ~/.ssh/sample-central-services.key

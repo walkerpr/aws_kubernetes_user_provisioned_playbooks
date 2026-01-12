@@ -1,0 +1,10 @@
+---
+- hosts: cp
+  become: true
+  become_user: root
+  vars:
+    kubernetes_version: "1.30.13"
+    etcd_version: "3.5.15-0"
+  roles:
+    - kubernetes-cert-rotation
+    - kubernetes-stig-manifest-updates

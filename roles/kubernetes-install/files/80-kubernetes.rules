@@ -1,0 +1,6 @@
+
+allow perm=any all : dir=/var/lib/kubelet/
+allow perm=any all : dir=/var/lib/containerd/
+allow perm=any all : dir=/var/lib/cni/
+allow perm=execute exe=/usr/local/bin/containerd-shim-runc-v2 : all
+allow perm=execute exe=/usr/local/bin/containerd : all

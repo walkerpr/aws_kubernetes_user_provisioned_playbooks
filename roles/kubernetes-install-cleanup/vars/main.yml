@@ -1,0 +1,15 @@
+---
+# vars file for kubernetes-install-cleanup
+cleanup_kubernetes_files:
+  - "/opt/containerd-{{ containerd_version }}-linux-{{ processor_type }}.tar.gz"
+  - "/opt/containerd.service"
+  - "/opt/runc.{{ processor_type }}"
+  - "/opt/cni-plugins-linux-{{ processor_type }}-v{{ cni_version }}.tgz"
+  - "/opt/kube-flannel.yml"
+  - "/opt/get_helm.sh"
+  - "/opt/registry-pvc.yaml"
+  - "/opt/registry-svc.yaml"
+  - "/opt/registry-ingress.yaml"
+  - "/opt/registry-deploy.yaml"
+  - "/opt/k9s_Linux_{{ processor_type }}.tar.gz"
+  - "/opt/k9s"

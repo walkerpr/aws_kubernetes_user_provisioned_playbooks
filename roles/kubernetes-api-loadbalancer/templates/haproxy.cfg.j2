@@ -1,0 +1,46 @@
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+frontend k8s-control-plane
+  bind {{ hostvars['lb']['lb_ip'] }}:{{ api_port }}
+  mode tcp
+  option tcplog
+  default_backend k8s-control-plane
+backend k8s-control-plane
+  mode tcp
+  balance roundrobin
+  option tcp-check
+  server cp1 {{ hostvars['cp']['ansible_host'] }}:{{ api_port }} check
+
+frontend http_front
+  bind *:80
+  mode http
+  default_backend ingress_http
+
+backend ingress_http
+  mode http
+  server cp1 {{ hostvars['cp']['ansible_host'] }}:{{ http_ingress_port }}
+
+frontend https_front
+  bind *:443
+  mode tcp
+  default_backend ingress_https
+
+backend ingress_https
+  mode tcp
+  server cp1 {{ hostvars['cp']['ansible_host'] }}:{{ https_ingress_port }}

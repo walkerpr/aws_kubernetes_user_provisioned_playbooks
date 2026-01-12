@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+  name: docker-registry-ingress
+  namespace: docker-registry
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-body-size: "5g"   
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - "{{ image_registry_fqdn }}" 
+    secretName: registry-cert
+  rules:
+  - host: "{{ image_registry_fqdn }}" 
+    http:
+      paths:
+      - backend:
+          service:
+            name: docker-registry
+            port:
+              number: 5000
+        path: /
+        pathType: Prefix

@@ -1,0 +1,6 @@
+server = "{{ hostvars['cp']['ansible_host'] }}"
+
+[host."{{ hostvars['cp']['ansible_host'] }}"]
+  capabilities = ["pull", "resolve"]
+  ca = "/etc/containerd/certs.d/{{ hostvars['cp']['ansible_host'] }}/ca.crt"  
+  client = [["/etc/containerd/certs.d/{{ hostvars['cp']['ansible_host'] }}/client.cert","/etc/containerd/certs.d/{{ hostvars['cp']['ansible_host'] }}/client.key"]]

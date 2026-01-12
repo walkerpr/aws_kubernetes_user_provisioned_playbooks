@@ -1,0 +1,78 @@
+---
+# tasks file for kubernetes-api-loadbalancer
+- name: Add nginx repo
+  copy:
+    src: nginx.repo
+    dest: /etc/yum.repos.d/nginx.repo
+
+- name: Disable nginx module
+  command: dnf -y module disable nginx
+
+# - name: Install nginx
+#   dnf:
+#     name: nginx
+#     enablerepo: nginx-stable
+#     state: present
+
+- name: Install nginx
+  command: dnf install {{ item }} -y
+  loop:
+     - nginx
+
+
+- name: Add nginx.conf
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+# - name: Open Firewalld ports for kubernetes
+#   ansible.posix.firewalld:
+#     port: "{{ item }}"
+#     permanent: true
+#     state: enabled
+#   loop:
+#     - "{{ api_port }}/tcp"
+#     - "{{ https_ingress_port }}/tcp"
+#     - "{{ istio_ingress_port }}/tcp"
+#     - "{{ https_port }}/tcp"
+
+# - name: Open Firewalld Port
+#   command: firewall-cmd  --add-port={{ item }} --permanent
+#   loop:
+#     - "{{ api_port }}/tcp"
+#     - "{{ https_ingress_port }}/tcp"
+#     - "{{ istio_ingress_port }}/tcp"
+#     - "{{ https_port }}/tcp"
+
+# - name: Reload firewalld
+#   service:
+#     name: firewalld
+#     state: reloaded
+
+- name: Allow LB httpd traffic
+  ansible.posix.seboolean:
+    name: httpd_can_network_connect
+    state: true
+    persistent: true
+
+- name: Allow LB to listen on Ports required for K8s communicaiton
+  community.general.seport:
+    ports: "{{ item }}"
+    proto: tcp
+    setype: http_port_t
+    state: present
+  loop:
+    - "{{ api_port }}"
+    - "{{ https_ingress_port }}"
+    - "{{ istio_ingress_port }}"
+    - "{{ https_port }}"
+
+
+- name: Enable and Restart nginx
+  systemd_service:
+    name: nginx
+    state: restarted
+    enabled: true

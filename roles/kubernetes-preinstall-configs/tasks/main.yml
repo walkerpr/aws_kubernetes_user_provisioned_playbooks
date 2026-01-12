@@ -1,0 +1,38 @@
+---
+# tasks file for kubernetes-preinstall-configs
+- name: Get processor type
+  shell: lscpu | grep Architecture | awk -F":" '{print $2}' | xargs
+  register: processor
+
+- name: Set processor_type variable to AMD
+  set_fact:
+    processor_type: amd64
+  when: processor.stdout == "x86_64"
+
+- name: Set processor_type variable to ARM
+  set_fact:
+    processor_type: arm64
+  when: processor.stdout == "aarch64"
+
+- name: Get OS
+  shell: |
+    . /etc/os-release
+    echo "$ID"
+  register: os_id
+
+- name: sysctl ipv4_forward kubernetes updates
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Stop mfetpd and fapolicyd
+  service:
+    name: "{{ item }}"
+    state: stopped
+  loop:
+    - mfetpd
+    - fapolicyd
+  ignore_errors: true

@@ -1,0 +1,6 @@
+[nginx-stable]
+name=nginx stable repo
+baseurl=https://nginx.org/packages/rhel/8/$basearch/
+gpgcheck=1
+enabled=1
+gpgkey=https://nginx.org/keys/nginx_signing.key

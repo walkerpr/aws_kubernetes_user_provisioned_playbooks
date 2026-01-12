@@ -1,0 +1,32 @@
+---
+# tasks file for kubernetes-install-cleanup
+- name: Clean up Install Files
+  file:
+    path: "{{ item }}"
+    state: absent
+  become: true
+  loop: "{{ cleanup_kubernetes_files }}"
+
+- name: EXPORT KUBECONFIG to bashrc
+  lineinfile:
+    path: ~/.bashrc
+    line: 'export KUBECONFIG=/etc/kubernetes/admin.conf'
+    state: present
+
+- name: EXPORT local/bin PATH to bashrc
+  lineinfile:
+    path: ~/.bashrc
+    line: 'export PATH="/usr/local/bin:$PATH"'
+    state: present
+
+- name: Start mfetpd and fapolicyd
+  service:
+    name: "{{ item }}"
+    state: started
+  loop:
+    - mfetpd
+    - fapolicyd
+  ignore_errors: true
+
+- name: Reboot to finalize changes.
+  reboot:

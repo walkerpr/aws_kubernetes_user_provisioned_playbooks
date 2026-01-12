@@ -1,0 +1,59 @@
+---
+# tasks file for sample-containerd-updates
+- name: Update Containerd Config Path
+  lineinfile:
+    path: /etc/containerd/config.toml
+    line: '      config_path = "/etc/containerd/certs.d"'
+    insertafter: '    [plugins."io.containerd.grpc.v1.cri".registry]'
+    regexp: '      config_path = ""'
+    state: present
+
+- name: Create containerd certs.d directory
+  file:
+    path: /etc/containerd/certs.d
+    state: directory
+    mode: '0755'
+
+- name: Create sample registry certs.d directory
+  file:
+    path: "/etc/containerd/certs.d/{{ sample_e2_fqdn }}"
+    state: directory
+    mode: '0755'
+
+- name: Copy over sample cert for containerd
+  copy:
+    src: "/opt/k8s-csr/pki/{{ sample_e2_fqdn}}.crt"
+    dest: "/etc/containerd/certs.d/{{ sample_e2_fqdn }}/client.cert"
+    remote_src: yes
+
+- name: Copy over sample key for contaienerd
+  copy:
+    src: "/opt/k8s-csr/pki/{{ sample_e2_fqdn }}.key"
+    dest: "/etc/containerd/certs.d/{{ sample_e2_fqdn }}/client.key"
+    remote_src: yes
+
+- name: Copy CA bundle for containerd
+  copy:
+    src: "/etc/pki/ca-trust/source/anchors/cabundle.crt"
+    dest: "/etc/containerd/certs.d/{{ sample_e2_fqdn }}/ca.crt"
+    remote_src: yes
+
+- name: Add E2 sample registry hosts.toml
+  template:
+    src: "samplearty.toml.j2"
+    dest: "/etc/containerd/certs.d/{{ sample_e2_fqdn }}/hosts.toml"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Restart Containerd service
+  systemd_service:
+    name: containerd
+    state: restarted
+
+- name: Restart Kubelet service
+  systemd_service:
+    name: kubelet
+    state: restarted
+    daemon_reload: true
+    daemon_reexec: true

@@ -1,0 +1,152 @@
+---
+# tasks file for kubernetes-cert-rotation
+- name: Create k8s-stigs directory
+  file:
+    path: /etc/kubernetes/k8s-stigs
+    state: directory
+    mode: '0755'
+
+- name: copy CRBs for post rotation access
+  copy:
+    src: "{{item}}"
+    dest: "/etc/kubernetes/k8s-stigs/{{ item }}"
+  loop:
+    - k8s-viewlogscrb.yaml
+    - kubeletcrb.yaml
+    - kubeletnodescrb.yaml
+
+- name: copy new admin CRB for post rotation access
+  template:
+    src: k8s-admincrb.yaml.j2
+    dest: /etc/kubernetes/k8s-stigs/k8s-admincrb.yaml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Apply all CRBs for post rotation access
+  command: "kubectl apply -f /etc/kubernetes/k8s-stigs/{{ item }}"
+  loop:
+    - k8s-admincrb.yaml
+    - k8s-viewlogscrb.yaml
+    - kubeletcrb.yaml
+    - kubeletnodescrb.yaml
+
+
+- name: Copy over signed .conf certs
+  copy:
+    src: "/home/ec2-user/kubeadmCerts/confCSRs/{{ item.cer }}"
+    dest: "/opt/k8s-csr/conf/{{ item.crt }}"
+    remote_src: yes
+  loop: "{{k8s_conf_certs}}"
+
+- name: Copy over signed .conf certs
+  copy:
+    src: "/home/ec2-user/kubeadmCerts/pkiCSRs/{{ item.cer }}"
+    dest: "/opt/k8s-csr/pki/{{ item.crt }}"
+    remote_src: yes
+  loop: "{{k8s_pki_certs}}"
+
+- name: Copy over signed .conf certs
+  copy:
+    src: "/home/ec2-user/kubeadmCerts/pkiCSRs/etcd/{{ item.cer }}"
+    dest: "/opt/k8s-csr/pki/etcd/{{ item.crt }}"
+    remote_src: yes
+  loop: "{{k8s_etcd_certs}}"
+
+- name: Extract Kubelet Key
+  shell: |
+    awk '/client-key-data:/ {print $2}' /opt/k8s-csr/conf/kubelet.conf |  base64 -d > /opt/k8s-csr/conf/kubelet.key
+
+- name: Delete /etc/kubernetes/pki
+  file:
+    path: "/etc/kubernetes/{{ item.file }}"
+    state: absent
+  loop: "{{k8s_conf_files}}"
+
+- name: Delete existing conf files
+  file:
+    path: /etc/kubernetes/pki
+    state: absent
+
+- name: Copy new shell conf files to /etc/kubernetes/
+  copy:
+    src: "/opt/k8s-csr/conf/{{item.file}}"
+    dest: "/etc/kubernetes/{{item.file}}"
+    remote_src: yes
+  loop: "{{k8s_conf_files}}"
+
+- name: Copy new cert key pairs to /etc/kubernetes/pki
+  copy:
+    src: "/opt/k8s-csr/pki"
+    dest: "/etc/kubernetes"
+    remote_src: yes
+
+- name: Copy CA bundle to /etc/kubernetes/pki
+  copy:
+    src: "/etc/pki/ca-trust/source/anchors/cabundle.crt"
+    dest: "{{ item.crt }}"
+    remote_src: yes
+  loop: "{{k8s_ca_certs}}"
+
+- name: Copy kubelet key pair to /var/lib/kubelet
+  copy:
+    src: "/opt/k8s-csr/conf/{{ item }}"
+    dest: "/var/lib/kubelet/pki/{{ item }}"
+    remote_src: yes
+  loop:
+    - kubelet.crt
+    - kubelet.key
+
+- name: Create kubelet.pem
+  shell: |
+    (cat /var/lib/kubelet/pki/kubelet.crt; echo ""; cat /var/lib/kubelet/pki/kubelet.key) > /var/lib/kubelet/pki/kubelet-signed.pem
+
+- name: Remove old kublet pem symlink
+  file:
+    path: /var/lib/kubelet/pki/kubelet-client-current.pem
+    state: absent
+
+- name: Create kublet client symlink
+  file:
+    src: /var/lib/kubelet/pki/kubelet-signed.pem
+    dest: /var/lib/kubelet/pki/kubelet-client-current.pem
+    owner: root
+    group: root
+    state: link
+
+- name: Generate service account key
+  command: >
+    openssl genrsa -out /etc/kubernetes/pki/sa.key 2048
+  args:
+    creates: /etc/kubernetes/pki/sa.key
+
+- name: Extract public key from service account key
+  command: >
+    openssl rsa -in /etc/kubernetes/pki/sa.key -pubout -out /etc/kubernetes/pki/sa.pub
+  args:
+    creates: /etc/kubernetes/pki/sa.pub
+
+- name: Embed CA Certs into Conf Files
+  shell: |
+     KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-cluster {{ k8s_cluster_name }} \
+     --server=https://{{ hostvars['cp']['ansible_host'] }}:{{ api_port }} \
+     --certificate-authority /etc/kubernetes/pki/ca.crt --embed-certs
+  loop: "{{k8s_conf_files}}"
+
+- name: Embed client certs into Conf Files
+  shell: |
+     KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-credentials {{ item.user }} \
+     --client-certificate /opt/k8s-csr/conf/{{ item.crt }} --embed-certs
+  loop: "{{k8s_conf_files}}"
+
+- name: Update Context Users
+  shell: |
+     KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-context {{ k8s_cluster_context }} \
+     --cluster {{ k8s_cluster_name }} \
+     --user {{ item.user }}
+  loop: "{{k8s_conf_files}}"
+
+- name: Update Which Context is Used
+  shell: |
+     KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config use-context {{ k8s_cluster_context }} \
+  loop: "{{k8s_conf_files}}"

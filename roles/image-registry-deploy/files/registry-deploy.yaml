@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docker-registry
+  namespace: docker-registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docker-registry
+  template:
+    metadata:
+      labels:
+        app: docker-registry
+    spec:
+      containers:
+        - name: registry
+          image: registry:latest
+          ports:
+            - name: http
+              containerPort: 5000
+          volumeMounts:
+            - name: registry-storage
+              mountPath: /var/lib/registry
+            - name: config
+              mountPath: /etc/distribution
+              readOnly: true
+          env:
+            - name: OTEL_TRACES_EXPORTER
+              value: none
+      volumes:
+        - name: registry-storage
+          persistentVolumeClaim:
+            claimName: docker-registry-pv-claim
+        - name: config
+          configMap:
+            name: docker-registry-config
+            items:
+              - key: registry-config.yml
+                path: config.yml
