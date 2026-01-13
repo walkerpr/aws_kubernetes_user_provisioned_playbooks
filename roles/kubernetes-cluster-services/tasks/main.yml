@@ -55,7 +55,7 @@
         path: "/srv/nfs"
   run_once: true
 
-- name: exportfs
+- name: Exportfs
   command: exportfs -ar
   become: true
 

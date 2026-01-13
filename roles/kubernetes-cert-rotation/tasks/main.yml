@@ -127,26 +127,26 @@
     creates: /etc/kubernetes/pki/sa.pub
 
 - name: Embed CA Certs into Conf Files
-  command: |
+  shell: |
      KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-cluster {{ k8s_cluster_name }} \
      --server=https://{{ hostvars['cp']['ansible_host'] }}:{{ api_port }} \
      --certificate-authority /etc/kubernetes/pki/ca.crt --embed-certs
   loop: "{{k8s_conf_files}}"
 
 - name: Embed client certs into Conf Files
-  command: |
+  shell: |
      KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-credentials {{ item.user }} \
      --client-certificate /opt/k8s-csr/conf/{{ item.crt }} --embed-certs
   loop: "{{k8s_conf_files}}"
 
 - name: Update Context Users
-  command: |
+  shell: |
      KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-context {{ k8s_cluster_context }} \
      --cluster {{ k8s_cluster_name }} \
      --user {{ item.user }}
   loop: "{{k8s_conf_files}}"
 
 - name: Update Which Context is Used
-  command: |
+  shell: |
      KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config use-context {{ k8s_cluster_context }} \
   loop: "{{k8s_conf_files}}"
