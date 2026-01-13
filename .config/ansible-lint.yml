@@ -10,9 +10,8 @@ profile: basic # min, basic, moderate,safety, shared, production
 # and not relative to the CWD of execution. CLI arguments passed to the --exclude
 # option are parsed relative to the CWD of execution.
 exclude_paths:
-  - .git/ # implicit unless exclude_paths is defined in config
+  - .git/
   - .github/
-  - ansible.cfg
 # quiet: true
 # strict: true
 # verbosity: 1
