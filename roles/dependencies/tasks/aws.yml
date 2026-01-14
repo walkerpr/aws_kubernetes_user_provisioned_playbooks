@@ -2,9 +2,11 @@
   ansible.builtin.file:
     path: "/home/{{ ansible_user }}/.aws"
     state: directory
+    mode:  '0644'
   become: false
 
 - name: Copy values file
   ansible.builtin.template:
     src: "aws_config.j2"
     dest: "/home/{{ ansible_user }}/.aws/config"
+    mode: '0644'

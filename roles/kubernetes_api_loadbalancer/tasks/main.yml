@@ -45,8 +45,8 @@
 
 # - name: Open Firewalld Port
 #   register: my_output
-  changed_when: my_output.rc != 0
-  ansible.builtin.command: firewall-cmd  --add-port={{ item }} --permanent
+#   changed_when: my_output.rc != 0
+#   ansible.builtin.command: firewall-cmd  --add-port={{ item }} --permanent
 #   loop:
 #     - "{{ api_port }}/tcp"
 #     - "{{ https_ingress_port }}/tcp"

@@ -31,12 +31,3 @@
     sysctl_set: true
     state: present
     reload: true
-
-- name: Stop mfetpd and fapolicyd
-  ansible.builtin.service:
-    name: "{{ item }}"
-    state: stopped
-  loop:
-    - mfetpd
-    - fapolicyd
-  ignore_errors: true

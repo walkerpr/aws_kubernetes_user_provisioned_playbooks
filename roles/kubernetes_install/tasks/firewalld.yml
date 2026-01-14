@@ -1,11 +1,15 @@
 - name: Get Virtual Eth
   changed_when: veth_interfaces.rc != 0
-  ansible.builtin.shell: ip link list | grep veth | awk '{print $2}' | awk -F@ '{print $1}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    ip link list | grep veth | awk '{print $2}' | awk -F@ '{print $1}'
   register: veth_interfaces
 
 - name: Get CNI
   changed_when: cni_interfaces.rc != 0
-  ansible.builtin.shell: ip link list | awk '{print $2}' | grep cni | sed s/://g
+  ansible.builtin.shell: |
+    set -o pipefail
+    ip link list | awk '{print $2}' | grep cni | sed s/://g
   register: cni_interfaces
 
 

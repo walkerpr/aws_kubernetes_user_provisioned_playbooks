@@ -49,7 +49,7 @@
     src: "/home/ec2-user/kubeadmCerts/pkiCSRs/{{ item.cer }}"
     dest: "/opt/k8s-csr/pki/{{ item.crt }}"
     remote_src: true
-  loop: "{{k8s_pki_certs}}"
+  loop: "{{ k8s_pki_certs }} "
 
 - name: Copy over signed .conf certs
   ansible.builtin.copy:
@@ -63,6 +63,7 @@
   register: my_output
   changed_when: my_output.rc != 0
   ansible.builtin.shell: |
+    set -o pipefail
     awk '/client-key-data:/ {print $2}' /opt/k8s-csr/conf/kubelet.conf |  base64 -d > /opt/k8s-csr/conf/kubelet.key
 
 - name: Delete /etc/kubernetes/pki
@@ -97,7 +98,7 @@
     src: "/etc/pki/ca-trust/source/anchors/cabundle.crt"
     dest: "{{ item.crt }}"
     remote_src: true
-  loop: "{{k8s_ca_certs}}"
+  loop: "{{ k8s_ca_certs }}"
 
 - name: Copy kubelet key pair to /var/lib/kubelet
   ansible.builtin.copy:

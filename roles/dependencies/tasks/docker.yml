@@ -23,7 +23,7 @@
     - docker-compose-plugin
 
 - name: Ensure Docker is started
-  systemd:
+  ansible.builtin.systemd:
     name: docker
     daemon_reload: true
     enabled: true

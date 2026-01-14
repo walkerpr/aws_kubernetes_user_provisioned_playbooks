@@ -1,12 +1,13 @@
 ---
 
 - name: Get ssh key id
+  changed_when: dependencies_key_id.rc != 0
   ansible.builtin.command: >
     aws ssm get-parameter --name /sample/ec2/sample-deployment-{{ deployment_number }}/ec2/default-key/id --query Parameter.Value --with-decryption --output=text
   register: dependencies_key_id
 
 - name: Get ssh key
-
+  changed_when: dependencies_ssh_key.rc != 0
   ansible.builtin.command: >
     aws ssm get-parameter --name /ec2/keypair/{{ dependencies_key_id.stdout }} --query Parameter.Value --with-decryption --output=text
   register: dependencies_ssh_key
@@ -23,6 +24,7 @@
     state: absent
 
 - name: Get ssh key id
+  changed_when: dependencies_key_id.rc != 0
   ansible.builtin.command: >
     aws ssm get-parameter --name /sample/ec2/sample-central-services/ec2/default-key/id --query Parameter.Value --with-decryption --output=text
   register: dependencies_key_id

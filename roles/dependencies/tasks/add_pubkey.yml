@@ -1,6 +1,6 @@
 ---
   - name: Set add sample-central-services key to authorized keys.
-    authorized_key:
+    ansible.posix.authorized_key:
       ansible.builtin.user: ec2-user
       state: present
       key: "{{ lookup('file', '/home/ec2-user/.ssh/sample-central-services.key.pub') }}"

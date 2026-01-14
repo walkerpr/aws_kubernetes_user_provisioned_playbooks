@@ -19,14 +19,6 @@
     line: 'export PATH="/usr/local/bin:$PATH"'
     state: present
 
-- name: Start mfetpd and fapolicyd
-  ansible.builtin.service:
-    name: "{{ item }}"
-    state: started
-  loop:
-    - mfetpd
-    - fapolicyd
-  ignore_errors: true
 
 - name: Reboot to finalize changes.
   ansible.builtin.reboot:

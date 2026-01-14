@@ -185,5 +185,5 @@
 
 # - name: Apply sample Istio Files
 #   register: my_output
-  changed_when: my_output.rc != 0
-  ansible.builtin.command: kubectl apply -f /opt/istio-sample-gw.yaml
+#   changed_when: my_output.rc != 0
+#   ansible.builtin.command: kubectl apply -f /opt/istio-sample-gw.yaml

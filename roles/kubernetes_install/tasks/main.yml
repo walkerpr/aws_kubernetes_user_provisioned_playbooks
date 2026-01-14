@@ -54,6 +54,7 @@
   ansible.builtin.template:
     src: kubernetes.repo.j2
     dest: /etc/yum.repos.d/kubernetes.repo
+    mode: '0644'
 
 # - name: Install kubelet, kubeadm, kubectl
 #   dnf:
@@ -98,6 +99,7 @@
   ansible.builtin.file:
     state: directory
     path: /root/.kube
+    mode: '0644'
 
 - name: Write kubeadmin file to localhost
   ansible.builtin.copy:

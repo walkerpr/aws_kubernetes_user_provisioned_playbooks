@@ -10,6 +10,7 @@
   ansible.builtin.get_url:
     url: "{{ item.src }}"
     dest: "{{ item.dest }}"
+    mode: '0555'
   loop: "{{ kubernetes_downloads }}"
 
 - name: Extract Containerd
