@@ -24,6 +24,7 @@
     line: "/srv/nfs {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}(rw,no_subtree_check,no_root_squash)"
     state: present
     create: true
+    node: '0664'
 
 - name: Enable nfs-server service
   ansible.builtin.systemd_service:
@@ -93,6 +94,7 @@
   ansible.builtin.get_url:
     url: "https://github.com/derailed/k9s/releases/download/{{ k9s_version }}/k9s_Linux_{{ processor_type }}.tar.gz"
     dest: "/opt/k9s_Linux_{{ processor_type }}.tar.gz"
+    mode: '0664'
 
 - name: Extract k9s
   ansible.builtin.unarchive:

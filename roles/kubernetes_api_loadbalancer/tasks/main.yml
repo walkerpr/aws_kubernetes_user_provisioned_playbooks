@@ -4,7 +4,8 @@
   ansible.builtin.copy:
     src: nginx.repo
     dest: /etc/yum.repos.d/nginx.repo
-
+    mode: preserve
+    
 - name: Disable nginx module
   register: my_output
   changed_when: my_output.rc != 0
