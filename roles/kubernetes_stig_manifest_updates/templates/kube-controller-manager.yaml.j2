@@ -9,7 +9,7 @@ metadata:
   namespace: kube-system
 spec:
   containers:
-  - command:
+  - ansible.builtin.command:
     - kube-controller-manager
     - --allocate-node-cidrs=true
     - --authentication-kubeconfig=/etc/kubernetes/controller-manager.conf

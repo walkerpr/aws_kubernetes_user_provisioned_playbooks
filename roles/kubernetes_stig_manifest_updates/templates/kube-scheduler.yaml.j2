@@ -9,7 +9,7 @@ metadata:
   namespace: kube-system
 spec:
   containers:
-  - command:
+  - ansible.builtin.command:
     - kube-scheduler
     - --authentication-kubeconfig=/etc/kubernetes/scheduler.conf
     - --authorization-kubeconfig=/etc/kubernetes/scheduler.conf

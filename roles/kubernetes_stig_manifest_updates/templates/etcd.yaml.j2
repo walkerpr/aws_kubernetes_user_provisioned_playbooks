@@ -11,7 +11,7 @@ metadata:
   namespace: kube-system
 spec:
   containers:
-  - command:
+  - ansible.builtin.command:
     - etcd
     - --advertise-client-urls=https://{{ hostvars['cp']['ansible_host'] }}:2379
     - --cert-file=/etc/kubernetes/pki/etcd/server.crt

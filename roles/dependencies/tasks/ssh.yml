@@ -1,35 +1,35 @@
 ---
 
 - name: Get ssh key id
-  command: >
+  ansible.builtin.command: >
     aws ssm get-parameter --name /sample/ec2/sample-deployment-{{ deployment_number }}/ec2/default-key/id --query Parameter.Value --with-decryption --output=text
   register: dependencies_key_id
 
 - name: Get ssh key
-  command: >
+  ansible.builtin.command: >
     aws ssm get-parameter --name /ec2/keypair/{{ dependencies_key_id.stdout }} --query Parameter.Value --with-decryption --output=text
   register: dependencies_ssh_key
 
 - name: Create ssh key file
-  template:
+  ansible.builtin.template:
     src: templates/ssh.j2
     dest: "{{ ansible_ssh_private_key_file }}"
     mode: '700'
 
 - name: Delete known_hosts file
-  file:
+  ansible.builtin.file:
     path: ~/.ssh/known_hosts
     state: absent
 
 - name: Get ssh key id
-  command: >
+  ansible.builtin.command: >
     aws ssm get-parameter --name /sample/ec2/sample-central-services/ec2/default-key/id --query Parameter.Value --with-decryption --output=text
   register: dependencies_key_id
 
 - name: Get ssh key
-  shell: |
+  ansible.builtin.shell: |
     aws ssm get-parameter --name /ec2/keypair/{{ dependencies_key_id.stdout }}/public  --query Parameter.Value --with-decryption --output=text > ~/.ssh/sample-central-services.key.pub
 
 - name: Get ssh key
-  shell: |
+  ansible.builtin.shell: |
     aws ssm get-parameter --name /ec2/keypair/{{ dependencies_key_id.stdout }} --query Parameter.Value --with-decryption --output=text > ~/.ssh/sample-central-services.key

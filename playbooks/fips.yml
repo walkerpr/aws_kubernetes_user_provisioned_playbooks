@@ -5,6 +5,6 @@
   become_user: root
   tasks:
     - name: Install fips.
-      include_role:
+      ansible.builtin.include_role:
         name: kubernetes_preinstall_configs
         tasks_from: fips.yml

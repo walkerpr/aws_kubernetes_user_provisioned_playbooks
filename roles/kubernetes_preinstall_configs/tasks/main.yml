@@ -1,21 +1,21 @@
 ---
 # tasks file for kubernetes-preinstall-configs
 - name: Get processor type
-  shell: lscpu | grep Architecture | awk -F":" '{print $2}' | xargs
+  ansible.builtin.shell: lscpu | grep Architecture | awk -F":" '{print $2}' | xargs
   register: processor
 
 - name: Set processor_type variable to AMD
-  set_fact:
+  ansible.builtin.set_fact:
     processor_type: amd64
   when: processor.stdout == "x86_64"
 
 - name: Set processor_type variable to ARM
-  set_fact:
+  ansible.builtin.set_fact:
     processor_type: arm64
   when: processor.stdout == "aarch64"
 
 - name: Get OS
-  shell: |
+  ansible.builtin.shell: |
     . /etc/os-release
     echo "$ID"
   register: os_id
@@ -29,7 +29,7 @@
     reload: true
 
 - name: Stop mfetpd and fapolicyd
-  service:
+  ansible.builtin.service:
     name: "{{ item }}"
     state: stopped
   loop:

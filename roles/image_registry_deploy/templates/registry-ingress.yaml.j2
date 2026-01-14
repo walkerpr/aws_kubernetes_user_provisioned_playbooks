@@ -7,19 +7,19 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/proxy-body-size: "5g"   
+    nginx.ingress.kubernetes.io/proxy-body-size: "5g"
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - "{{ image_registry_fqdn }}" 
+    - "{{ image_registry_fqdn }}"
     secretName: registry-cert
   rules:
-  - host: "{{ image_registry_fqdn }}" 
+  - host: "{{ image_registry_fqdn }}"
     http:
       paths:
       - backend:
-          service:
+          ansible.builtin.service:
             name: docker-registry
             port:
               number: 5000

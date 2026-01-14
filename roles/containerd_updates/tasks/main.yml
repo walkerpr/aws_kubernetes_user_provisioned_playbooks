@@ -1,7 +1,7 @@
 ---
 # tasks file for sample-containerd-updates
 - name: Update Containerd Config Path
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/containerd/config.toml
     line: '      config_path = "/etc/containerd/certs.d"'
     insertafter: '    [plugins."io.containerd.grpc.v1.cri".registry]'
@@ -9,50 +9,50 @@
     state: present
 
 - name: Create containerd certs.d directory
-  file:
+  ansible.builtin.file:
     path: /etc/containerd/certs.d
     state: directory
     mode: '0755'
 
 - name: Create sample registry certs.d directory
-  file:
+  ansible.builtin.file:
     path: "/etc/containerd/certs.d/{{ sample_kub_fqdn }}"
     state: directory
     mode: '0755'
 
 - name: Copy over sample cert for containerd
-  copy:
+  ansible.builtin.copy:
     src: "/opt/k8s-csr/pki/{{ sample_kub_fqdn}}.crt"
     dest: "/etc/containerd/certs.d/{{ sample_kub_fqdn }}/client.cert"
     remote_src: true
 
 - name: Copy over sample key for contaienerd
-  copy:
+  ansible.builtin.copy:
     src: "/opt/k8s-csr/pki/{{ sample_kub_fqdn }}.key"
     dest: "/etc/containerd/certs.d/{{ sample_kub_fqdn }}/client.key"
     remote_src: true
 
 - name: Copy CA bundle for containerd
-  copy:
+  ansible.builtin.copy:
     src: "/etc/pki/ca-trust/source/anchors/cabundle.crt"
     dest: "/etc/containerd/certs.d/{{ sample_kub_fqdn }}/ca.crt"
     remote_src: true
 
 - name: Add kub sample registry hosts.toml
-  template:
+  ansible.builtin.template:
     src: "samplearty.toml.j2"
     dest: "/etc/containerd/certs.d/{{ sample_kub_fqdn }}/hosts.toml"
     owner: root
-    group: root
+    ansible.builtin.group: root
     mode: '0644'
 
 - name: Restart Containerd service
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: containerd
     state: restarted
 
 - name: Restart Kubelet service
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: kubelet
     state: restarted
     daemon_reload: true

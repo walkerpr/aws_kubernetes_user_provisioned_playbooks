@@ -1,12 +1,12 @@
 ---
 - name: Check if FIPS is enabled
-  shell: fips-mode-setup --check | tail -1
+  ansible.builtin.shell: fips-mode-setup --check | tail -1
   register: fips_result
 
 - name: Enable FIPS
-  command: fips-mode-setup --enable
+  ansible.builtin.command: fips-mode-setup --enable
   when: fips_result.stdout == "FIPS mode is disabled."
 
 - name: Reboot after enabling FIPS
-  reboot:
+  ansible.builtin.reboot:
   when: fips_result.stdout == "FIPS mode is disabled."

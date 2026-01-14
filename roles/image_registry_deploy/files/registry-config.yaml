@@ -8,7 +8,7 @@ data:
     version: 0.1
     log:
       fields:
-        service: registry
+        ansible.builtin.service: registry
     storage:
       cache:
         blobdescriptor: inmemory

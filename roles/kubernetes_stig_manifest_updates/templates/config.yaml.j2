@@ -6,7 +6,7 @@ authentication:
     cacheTTL: 0s
     enabled: true
   x509:
-    clientCAFile: /etc/kubernetes/pki/ca.crt
+    clientCAfile: /etc/kubernetes/pki/ca.crt
 authorization:
   mode: Webhook
   webhook:
@@ -37,8 +37,8 @@ logging:
 memorySwap: {}
 nodeStatusReportFrequency: 0s
 nodeStatusUpdateFrequency: 0s
-tlsPrivateKeyFile: {{ config_tls_key }}
-tlsCertFile: {{ config_tls_cert }}
+tlsPrivateKeyfile: {{ config_tls_key }}
+tlsCertfile: {{ config_tls_cert }}
 rotateCertificates: true
 runtimeRequestTimeout: 0s
 shutdownGracePeriod: 0s

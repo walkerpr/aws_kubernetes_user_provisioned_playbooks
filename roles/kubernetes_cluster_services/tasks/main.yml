@@ -6,40 +6,40 @@
 #     state: present
 
 - name: Install nfs-utils
-  command: dnf install {{ item }} -y
+  ansible.builtin.command: dnf install {{ item }} -y
   loop:
      - nfs-utils
 
 - name: Create nfs dir
-  file:
+  ansible.builtin.file:
     path: /srv/nfs
     state: directory
     mode: '0755'
 
 - name: Add nfs-client /etc/export entry
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/exports
     line: "/srv/nfs {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}(rw,no_subtree_check,no_root_squash)"
     state: present
     create: true
 
 - name: Enable nfs-server service
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: nfs-server
     state: started
     enabled: true
 
 - name: Add graceful shutdown period information to kubelet configuration
-  replace:
+  ansible.builtin.replace:
     path:  /var/lib/kubelet/config.yaml
     regexp: 'shutdownGracePeriod: 0s'
-    replace: 'shutdownGracePeriod: 120s'
+    ansible.builtin.replace: 'shutdownGracePeriod: 120s'
 
 - name: Add graceful pod shutdown period information to kubelet configuration
-  replace:
+  ansible.builtin.replace:
     path:  /var/lib/kubelet/config.yaml
     regexp: 'shutdownGracePeriodCriticalPods: 0s'
-    replace: 'shutdownGracePeriodCriticalPods: 120s'
+    ansible.builtin.replace: 'shutdownGracePeriodCriticalPods: 120s'
 
 - name: Helm Install Nfs-provisioner for nfs storage class
   kubernetes.core.helm:
@@ -56,11 +56,11 @@
   run_once: true
 
 - name: Exportfs
-  command: exportfs -ar
+  ansible.builtin.command: exportfs -ar
   become: true
 
 - name: Set nfs-client as default storage class
-  command: >
+  ansible.builtin.command: >
     kubectl patch storageclass nfs-client -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
   run_once: true
 
@@ -74,7 +74,7 @@
     create_namespace: true
     values:
       controller:
-        service:
+        ansible.builtin.service:
           type: NodePort
           nodePorts:
             http: "{{ http_ingress_port }}"
@@ -84,18 +84,18 @@
   run_once: true
 
 - name: Download k9s for mananging Cluster
-  get_url:
+  ansible.builtin.get_url:
     url: "https://github.com/derailed/k9s/releases/download/{{ k9s_version }}/k9s_Linux_{{ processor_type }}.tar.gz"
     dest: "/opt/k9s_Linux_{{ processor_type }}.tar.gz"
 
 - name: Extract k9s
-  unarchive:
+  ansible.builtin.unarchive:
     src: "/opt/k9s_Linux_{{ processor_type }}.tar.gz"
     dest: "/opt/"
     remote_src: true
 
 - name: Make k9s PATH accessible
-  copy:
+  ansible.builtin.copy:
     src: "/opt/k9s"
     dest: "/usr/local/bin/k9s"
     mode: '0755'
@@ -115,7 +115,7 @@
   run_once: true
 
 - name: Install Kubernetes Gateway Resources
-  shell: >
+  ansible.builtin.shell: >
     kubectl get crd gateways.gateway.networking.k8s.io &> /dev/null ||  kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml
   run_once: true
 
@@ -156,7 +156,7 @@
 
 
 - name: Helm Install Istio Ingress Gateway
-  shell: |
+  ansible.builtin.shell: |
     /usr/local/bin/helm  upgrade istio-ingress gateway -n istio-ingress --repo=https://istio-release.storage.googleapis.com/charts -i  --create-namespace --set service.type=NodePort --set service.ports[0].name=https --set service.ports[0].port=443 --set service.ports[0].targetPort=8443 --set service.ports[0].nodePort={{ istio_ingress_port }}  --skip-schema-validation
   run_once: true
 
@@ -165,13 +165,13 @@
 
 
 # - name: Add sample Istio Files
-#   template:
+#   ansible.builtin.template:
 #     src: istio-sample-gw.yaml.j2
 #     dest: /opt/istio-sample-gw.yaml
 #     owner: root
-#     group: root
+#     ansible.builtin.group: root
 #     mode: '0644'
 
 
 # - name: Apply sample Istio Files
-#   command: kubectl apply -f /opt/istio-sample-gw.yaml
+#   ansible.builtin.command: kubectl apply -f /opt/istio-sample-gw.yaml

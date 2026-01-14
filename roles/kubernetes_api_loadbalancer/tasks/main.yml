@@ -1,12 +1,12 @@
 ---
 # tasks file for kubernetes-api-loadbalancer
 - name: Add nginx repo
-  copy:
+  ansible.builtin.copy:
     src: nginx.repo
     dest: /etc/yum.repos.d/nginx.repo
 
 - name: Disable nginx module
-  command: dnf -y module disable nginx
+  ansible.builtin.command: dnf -y module disable nginx
 
 # - name: Install nginx
 #   dnf:
@@ -15,17 +15,17 @@
 #     state: present
 
 - name: Install nginx
-  command: dnf install {{ item }} -y
+  ansible.builtin.command: dnf install {{ item }} -y
   loop:
      - nginx
 
 
 - name: Add nginx.conf
-  template:
+  ansible.builtin.template:
     src: nginx.conf.j2
     dest: /etc/nginx/nginx.conf
     owner: root
-    group: root
+    ansible.builtin.group: root
     mode: '0644'
 
 # - name: Open Firewalld ports for kubernetes
@@ -40,7 +40,7 @@
 #     - "{{ https_port }}/tcp"
 
 # - name: Open Firewalld Port
-#   command: firewall-cmd  --add-port={{ item }} --permanent
+#   ansible.builtin.command: firewall-cmd  --add-port={{ item }} --permanent
 #   loop:
 #     - "{{ api_port }}/tcp"
 #     - "{{ https_ingress_port }}/tcp"
@@ -48,7 +48,7 @@
 #     - "{{ https_port }}/tcp"
 
 # - name: Reload firewalld
-#   service:
+#   ansible.builtin.service:
 #     name: firewalld
 #     state: reloaded
 
@@ -72,7 +72,7 @@
 
 
 - name: Enable and Restart nginx
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: nginx
     state: restarted
     enabled: true

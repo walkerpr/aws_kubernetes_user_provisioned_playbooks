@@ -1,12 +1,12 @@
 ---
 
 - name: Install kubernetes dependent packages
-  command: dnf install {{ item }} -y
+  ansible.builtin.command: dnf install {{ item }} -y
   loop:
     - python3.12-pip
     - firewalld
-    - "java-{{java_version}}-openjdk"
+    - "java-{{ java_version }}-openjdk"
 
 - name: Install kubernetes pip package
-  pip:
+  ansible.builtin.pip:
     name: kubernetes

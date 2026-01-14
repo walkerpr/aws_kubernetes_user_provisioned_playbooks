@@ -11,7 +11,7 @@ metadata:
   namespace: kube-system
 spec:
   containers:
-  - command:
+  - ansible.builtin.command:
     - kube-apiserver
     - --audit-policy-file={{ audit_policy_file }}
     - --audit-log-path={{ audit_log_path }}

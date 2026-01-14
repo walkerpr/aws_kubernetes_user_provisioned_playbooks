@@ -8,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: docker-registry
-  template:
+  ansible.builtin.template:
     metadata:
       labels:
         app: docker-registry

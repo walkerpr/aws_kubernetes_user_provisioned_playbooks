@@ -1,26 +1,26 @@
 ---
 # tasks file for kubernetes-install-cleanup
 - name: Clean up Install Files
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   become: true
   loop: "{{ cleanup_kubernetes_files }}"
 
 - name: EXPORT KUBECONFIG to bashrc
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: ~/.bashrc
     line: 'export KUBECONFIG=/etc/kubernetes/admin.conf'
     state: present
 
 - name: EXPORT local/bin PATH to bashrc
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: ~/.bashrc
     line: 'export PATH="/usr/local/bin:$PATH"'
     state: present
 
 - name: Start mfetpd and fapolicyd
-  service:
+  ansible.builtin.service:
     name: "{{ item }}"
     state: started
   loop:
@@ -29,4 +29,4 @@
   ignore_errors: true
 
 - name: Reboot to finalize changes.
-  reboot:
+  ansible.builtin.reboot:

@@ -25,7 +25,7 @@ imagePullSecrets:
     - name: image-pull-secret
 deployment: {}
   # annotations:
-service:
+ansible.builtin.service:
   name: registry
   type: ClusterIP
   # sessionAffinity: None
@@ -140,7 +140,7 @@ configData:
   version: 0.1
   log:
     fields:
-      service: registry
+      ansible.builtin.service: registry
   storage:
     cache:
       blobdescriptor: inmemory
@@ -246,7 +246,7 @@ initContainers: []
 ## Init containers to add to the Deployment
 # - name: init
 #   image: busybox
-#   command: []
+#   ansible.builtin.command: []
 
 garbageCollect:
   enabled: false

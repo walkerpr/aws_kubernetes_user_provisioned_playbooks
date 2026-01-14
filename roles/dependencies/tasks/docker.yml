@@ -1,14 +1,14 @@
 ---
 - name: Ensure dnf core is installed
-  command: dnf -y install dnf-plugins-core
+  ansible.builtin.command: dnf -y install dnf-plugins-core
 
 
 - name: Add Docker repo
-  command: dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+  ansible.builtin.command: dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
 
 
 - name: Install docker packages
-  command: dnf install -y {{ item }}
+  ansible.builtin.command: dnf install -y {{ item }}
   loop:
     - docker-ce
     - docker-ce-cli
@@ -25,17 +25,17 @@
 
 
 - name: Ensure group "docker" exists
-  group:
+  ansible.builtin.group:
     name: docker
     state: present
 
 
 - name: Ensure user is in Docker group
-  user:
+  ansible.builtin.user:
     name: "{{ ansible_user }}"
     groups: docker
     append: true
 
 
 - name: Make new group membership active without starting a new session
-  command: newgrp docker
+  ansible.builtin.command: newgrp docker
