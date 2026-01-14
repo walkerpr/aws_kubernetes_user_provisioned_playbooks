@@ -8,6 +8,8 @@
 
 
 - name: Get latest DoD CA Certs
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: |
     bash getDoDCerts.sh "dev/d{{ deployment_number }}"
   delegate_to: localhost
@@ -16,6 +18,8 @@
     chdir: "roles/image-registry-deploy/files/scripts"
 
 - name: Generate self-signed server certificates
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: |
     bash gen_certificates.sh "dev" "{{ deployment_number }}"
   delegate_to: localhost
@@ -26,6 +30,7 @@
 
 - name: Copy DoD CA certs
   ansible.builtin.copy:
+    mode: preserve
     src: "certs/dev/d{{ deployment_number }}/trustca/"
     dest: "/etc/pki/ca-trust/source/anchors"
     owner: root
@@ -34,6 +39,7 @@
 
 - name: Copy CA certs
   ansible.builtin.copy:
+    mode: preserve
     src: "certs/certificate-authority/server-cacert.crt"
     dest: "/etc/pki/ca-trust/source/anchors"
     owner: root
@@ -41,12 +47,15 @@
   become: true
 
 - name: Update system ca trusted certs.
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: "update-ca-trust extract"
   become: true
 
 
 - name: Copy server certs
   ansible.builtin.copy:
+    mode: preserve
     src: "certs/dev/d{{ deployment_number }}/server/{{ image_registry_fqdn }}.crt"
     dest: "/opt/{{ image_registry_fqdn }}.crt"
     owner: root
@@ -55,6 +64,7 @@
 
 - name: Copy server keys
   ansible.builtin.copy:
+    mode: preserve
     src: "certs/dev/d{{ deployment_number }}/server/{{ image_registry_fqdn }}.key"
     dest: "/opt/{{ image_registry_fqdn }}.key"
     owner: root
@@ -63,18 +73,21 @@
 
 - name: Create cert directory
   ansible.builtin.file:
+    permissions: '770'
     state: directory
     path: "/etc/docker/certs.d/{{ image_registry_fqdn }}"
   delegate_to: localhost
 
 - name: Create cert directory
   ansible.builtin.file:
+    permissions: '770'
     state: directory
     path: "/etc/docker/certs.d/services.devops.sample.sample.mil"
   delegate_to: localhost
 
 - name: Copy ca certs
   ansible.builtin.copy:
+    mode: preserve
     src: "certs/certificate-authority/server-cacert.crt"
     dest: "/etc/docker/certs.d/{{ image_registry_fqdn }}/ca.crt"
     owner: root
@@ -91,11 +104,15 @@
   run_once: true
 
 - name: Delete existing Image Registry pull secret
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: "kubectl delete secret image-pull-secret -n docker-registry"
   ignore_errors: true
   run_once: true
 
 - name: Create Image Registry pull secret
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: |
     export ARTIFACTORY_USERNAME={{ devops_secrets.artifactoryUser }}
     export ARTIFACTORY_PASSWORD={{ devops_secrets.artifactoryPassword }}
@@ -126,6 +143,8 @@
 #   run_once: true
 
 - name: Attach Image Pull secret to namespace default account
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: >
     kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "image-pull-secret"}]}' --namespace=docker-registry
   run_once: true
@@ -158,7 +177,9 @@
 
 
 # - name: Create Image Registry TLS secret
-#   ansible.builtin.command: >
+#   register: my_output
+# changed_when: my_output.rc != 0
+# ansible.builtin.command: >
 #     kubectl create secret tls registry-cert
 #     --cert=/opt/{{ image_registry_fqdn }}.crt
 #     --key=/opt/{{ image_registry_fqdn }}.key
@@ -169,6 +190,7 @@
 
 - name: Copy Registry Container files
   ansible.builtin.copy:
+    mode: preserve
     src: "{{ item }}"
     dest: "/opt/{{ item }}"
   loop:
@@ -184,7 +206,9 @@
 #     state: enabled
 
 # - name: Open Firewalld Port
-#   ansible.builtin.command: firewall-cmd  --add-port={{ item }} --permanent
+#   register: my_output
+  changed_when: my_output.rc != 0
+  ansible.builtin.command: firewall-cmd  --add-port={{ item }} --permanent
 #   loop:
 #     -  "{{ https_port }}/tcp"
 #     - "5000/tcp"
@@ -218,6 +242,8 @@
 #   run_once: true
 
 - name: Deploy Docker Registry
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: kubectl apply -f {{ item }}
   loop:
     - /opt/registry-config.yaml

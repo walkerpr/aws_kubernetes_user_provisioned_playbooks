@@ -8,6 +8,7 @@
 
 - name: Copy CRBs for post rotation access
   ansible.builtin.copy:
+    mode: preserve
     src: "{{ item }}"
     dest: "/etc/kubernetes/k8s-stigs/{{ item }}"
   loop:
@@ -24,6 +25,8 @@
     mode: '0644'
 
 - name: Apply all CRBs for post rotation access
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: "kubectl apply -f /etc/kubernetes/k8s-stigs/{{ item }}"
   loop:
     - k8s-admincrb.yaml
@@ -34,6 +37,7 @@
 
 - name: Copy over signed .conf certs
   ansible.builtin.copy:
+    mode: preserve
     src: "/home/ec2-user/kubeadmCerts/confCSRs/{{ item.cer }}"
     dest: "/opt/k8s-csr/conf/{{ item.crt }}"
     remote_src: true
@@ -41,6 +45,7 @@
 
 - name: Copy over signed .conf certs
   ansible.builtin.copy:
+    mode: preserve
     src: "/home/ec2-user/kubeadmCerts/pkiCSRs/{{ item.cer }}"
     dest: "/opt/k8s-csr/pki/{{ item.crt }}"
     remote_src: true
@@ -48,12 +53,15 @@
 
 - name: Copy over signed .conf certs
   ansible.builtin.copy:
+    mode: preserve
     src: "/home/ec2-user/kubeadmCerts/pkiCSRs/etcd/{{ item.cer }}"
     dest: "/opt/k8s-csr/pki/etcd/{{ item.crt }}"
     remote_src: true
   loop: "{{ k8s_etcd_certs }}"
 
 - name: Extract Kubelet Key
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: |
     awk '/client-key-data:/ {print $2}' /opt/k8s-csr/conf/kubelet.conf |  base64 -d > /opt/k8s-csr/conf/kubelet.key
 
@@ -70,19 +78,22 @@
 
 - name: Copy new shell conf files to /etc/kubernetes/
   ansible.builtin.copy:
-    src: "/opt/k8s-csr/conf/{{item.file}}"
-    dest: "/etc/kubernetes/{{item.file}}"
+    mode: preserve
+    src: "/opt/k8s-csr/conf/{{ item.file }}"
+    dest: "/etc/kubernetes/{{ item.file }}"
     remote_src: true
   loop: "{{ k8s_conf_files }}"
 
 - name: Copy new cert key pairs to /etc/kubernetes/pki
   ansible.builtin.copy:
+    mode: preserve
     src: "/opt/k8s-csr/pki"
     dest: "/etc/kubernetes"
     remote_src: true
 
 - name: Copy CA bundle to /etc/kubernetes/pki
   ansible.builtin.copy:
+    mode: preserve
     src: "/etc/pki/ca-trust/source/anchors/cabundle.crt"
     dest: "{{ item.crt }}"
     remote_src: true
@@ -90,6 +101,7 @@
 
 - name: Copy kubelet key pair to /var/lib/kubelet
   ansible.builtin.copy:
+    mode: preserve
     src: "/opt/k8s-csr/conf/{{ item }}"
     dest: "/var/lib/kubelet/pki/{{ item }}"
     remote_src: true
@@ -98,6 +110,8 @@
     - kubelet.key
 
 - name: Create kubelet.pem
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: |
     (cat /var/lib/kubelet/pki/kubelet.crt; echo ""; cat /var/lib/kubelet/pki/kubelet.key) > /var/lib/kubelet/pki/kubelet-signed.pem
 
@@ -115,18 +129,24 @@
     state: link
 
 - name: Generate service account key
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: >
     openssl genrsa -out /etc/kubernetes/pki/sa.key 2048
   args:
     creates: /etc/kubernetes/pki/sa.key
 
 - name: Extract public key from service account key
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: >
     openssl rsa -in /etc/kubernetes/pki/sa.key -pubout -out /etc/kubernetes/pki/sa.pub
   args:
     creates: /etc/kubernetes/pki/sa.pub
 
 - name: Embed CA Certs into Conf Files
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: |
      KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-cluster {{ k8s_cluster_name }} \
      --server=https://{{ hostvars['cp']['ansible_host'] }}:{{ api_port }} \
@@ -134,12 +154,16 @@
   loop: "{{ k8s_conf_files }}"
 
 - name: Embed client certs into Conf Files
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: |
      KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-credentials {{ item.user }} \
      --client-certificate /opt/k8s-csr/conf/{{ item.crt }} --embed-certs
   loop: "{{ k8s_conf_files }}"
 
 - name: Update Context Users
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: |
      KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-context {{ k8s_cluster_context }} \
      --cluster {{ k8s_cluster_name }} \
@@ -147,6 +171,8 @@
   loop: "{{ k8s_conf_files }}"
 
 - name: Update Which Context is Used
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: |
      KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config use-context {{ k8s_cluster_context }} \
   loop: "{{ k8s_conf_files }}"

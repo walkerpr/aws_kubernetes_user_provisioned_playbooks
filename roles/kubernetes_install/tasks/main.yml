@@ -3,6 +3,7 @@
 
 - name: Add kubernetes fapolicyd rules
   ansible.builtin.copy:
+    mode: preserve
     src: 80-kubernetes.rules
     dest: /etc/fapolicyd/rules.d/80-kubernetes.rules
   when: ansible_facts['services']['fapolicyd.service']['status'] | default('not-found') != 'not-found'
@@ -23,15 +24,20 @@
     - br_netfilter
 
 - name: Add the br_netfilter module to work across reboot
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: |
     echo br_netfilter > /etc/modules-load.d/br_netfilter.conf
 
 - name: Add sysctl kubernetes rules
   ansible.builtin.copy:
+    mode: preserve
     src: 99-kubernetes-cri.conf
     dest: /etc/sysctl.d/99-kubernetes-cri.conf
 
 - name: Reload sysctl
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: sysctl --system
   become: true
 
@@ -40,6 +46,7 @@
 
 # - name: Add Kubernetes Repo
 #   ansible.builtin.copy:
+#     mode: preserve
 #     src: kubernetes.repo
 #     dest: /etc/yum.repos.d/kubernetes.repo
 
@@ -58,6 +65,8 @@
 #     state: present
 
 - name: Install kubelet, kubeadm, kubectl
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: dnf install {{ item }} -y --disableexcludes=kubernetes
   loop:
     - "kubelet"
@@ -71,11 +80,15 @@
     enabled: true
 
 - name: Initialize Kubernets cluster with kubeadm
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: kubeadm init --upload-certs --pod-network-cidr="{{ flannel_subnet }}"
   become: true
   when: not use_lb_endpoint
 
 - name: Initialize Kubernets cluster with kubeadm using lb endpoint
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: kubeadm init --control-plane-endpoint "{{ hostvars['lb']['ansible_host'] }}:{{ api_port }}" --upload-certs --pod-network-cidr="{{ flannel_subnet }}" --v=5
   when: use_lb_endpoint
   become: true
@@ -88,6 +101,7 @@
 
 - name: Write kubeadmin file to localhost
   ansible.builtin.copy:
+    mode: preserve
     src: "/etc/kubernetes/admin.conf"
     dest: "/root/.kube/config"
     remote_src: true
@@ -100,6 +114,7 @@
 
 - name: Write kubeadmin file to localhost
   ansible.builtin.copy:
+    mode: preserve
     content: "{{ kubeadmin.content | b64decode }}"
     dest: "/home/ec2-user/.kube/deployment{{ deployment_number }}-kub.conf"
   delegate_to: localhost
@@ -113,19 +128,26 @@
   delegate_to: localhost
 
 - name: Get the current caller identity information
+  changed_when: caller_info.rc != 0
   ansible.builtin.shell: aws sts get-caller-identity --query Account --output text
   register: caller_info
   delegate_to: localhost
 
 - name: Upload kube file to s3
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: aws s3 cp /home/ec2-user/.kube/deployment{{ deployment_number }}-kub.conf s3://sample-{{ caller_info.stdout }}-kub/deployment{{ deployment_number }}/kube/config
   delegate_to: localhost
 
 - name: Load Flannel Networking Interface
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: kubectl apply -f /opt/kube-flannel.yml
 
 
 - name: Remove taint to be able to run workloads on control plane/single node
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: kubectl taint nodes --all node-role.kubernetes.io/control-plane-
   run_once: true
 
@@ -141,11 +163,15 @@
 #     state: present
 
 - name: Install git
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: dnf install {{ item }} -y
   loop:
      - git
 
 - name: Install Helm
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: /opt/get_helm.sh
   environment:
     PATH: "/usr/local/sbin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/sbin:/usr/local/bin"

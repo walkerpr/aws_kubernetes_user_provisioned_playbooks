@@ -29,11 +29,13 @@
 
 - name: Add Admission Config file
   ansible.builtin.copy:
+    mode: preserve
     src: admission-config.yaml
     dest: /etc/kubernetes/k8s-stigs/admission-config.yaml
 
 - name: Add Audit Policy file
   ansible.builtin.copy:
+    mode: preserve
     src: audit-policy.yaml
     dest: "/etc/kubernetes/k8s-stigs/audit-policy.yaml"
 
@@ -45,12 +47,18 @@
     daemon_reexec: true
 
 - name: Restart Kube Proxy Daemonset
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: kubectl rollout restart daemonset kube-proxy -n kube-system
 
 
 - name: Restart flannel Daemonset
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: kubectl rollout restart daemonset kube-flannel-ds -n kube-flannel
 
 
 - name: Restart CoreDNS Deployment
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: kubectl rollout restart deployment coredns -n kube-system

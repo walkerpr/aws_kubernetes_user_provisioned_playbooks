@@ -1,4 +1,6 @@
 - name: Install packages
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: dnf install {{ item }} -y
   loop:
     - firewalld
@@ -10,6 +12,8 @@
     enabled: true
 
 - name: Open Firewalld Port for Kubernetes
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: firewall-cmd  --add-port={{ item }} --permanent
   loop:
     - 6443/tcp
@@ -22,6 +26,8 @@
     - 443/tcp
 
 - name: Enable Masquerading for Firewalld to allow NAT kubernetes traffic
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: firewall-cmd  --add-masquerade --permanent
 
 - name: Reload firewalld

@@ -246,7 +246,8 @@ initContainers: []
 ## Init containers to add to the Deployment
 # - name: init
 #   image: busybox
-#   ansible.builtin.command: []
+#   register: my_output
+#   command: []
 
 garbageCollect:
   enabled: false

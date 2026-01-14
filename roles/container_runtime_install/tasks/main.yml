@@ -28,6 +28,7 @@
   ansible.builtin.copy:
     src: /opt/containerd.service
     dest: /usr/local/lib/systemd/system
+    mode: preserve
     remote_src: true
 
 - name: Install runc
@@ -58,7 +59,10 @@
     mode: '0755'
 
 - name: Store Default containerd config in /etc/containerd
-  ansible.builtin.shell: containerd config default | sudo tee /etc/containerd/config.toml
+  changed_when: my_output.rc != 0
+  ansible.builtin.shell: |
+    set -o pipefail
+    containerd config default | sudo tee /etc/containerd/config.toml
   become: true
 
 - name: Set SystemdCgroup to true in config.toml

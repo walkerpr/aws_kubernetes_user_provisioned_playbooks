@@ -8,7 +8,11 @@
     name: botocore
 
 - name: Install aws ansible plugin
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: ansible-galaxy collection install amazon.aws
 
 - name: Install aws ansible plugin
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: ansible-galaxy collection install community.docker

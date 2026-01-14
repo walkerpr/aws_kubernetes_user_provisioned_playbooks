@@ -1,6 +1,8 @@
 ---
 
 - name: Install kubernetes dependent packages
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: dnf install {{ item }} -y
   loop:
     - python3.12-pip

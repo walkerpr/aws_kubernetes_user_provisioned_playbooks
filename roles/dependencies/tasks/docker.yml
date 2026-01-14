@@ -1,13 +1,19 @@
 ---
 - name: Ensure dnf core is installed
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: dnf -y install dnf-plugins-core
 
 
 - name: Add Docker repo
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
 
 
 - name: Install docker packages
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: dnf install -y {{ item }}
   loop:
     - docker-ce
@@ -38,4 +44,6 @@
 
 
 - name: Make new group membership active without starting a new session
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: newgrp docker

@@ -1,9 +1,14 @@
 ---
 - name: Check if FIPS is enabled
-  ansible.builtin.shell: fips-mode-setup --check | tail -1
+  changed_when: fips_result.rc != 0
+  ansible.builtin.shell: |
+    set -o pipefail
+    fips-mode-setup --check | tail -1
   register: fips_result
 
 - name: Enable FIPS
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: fips-mode-setup --enable
   when: fips_result.stdout == "FIPS mode is disabled."
 

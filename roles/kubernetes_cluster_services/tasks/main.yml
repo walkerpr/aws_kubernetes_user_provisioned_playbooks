@@ -6,6 +6,8 @@
 #     state: present
 
 - name: Install nfs-utils
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: dnf install {{ item }} -y
   loop:
      - nfs-utils
@@ -56,10 +58,14 @@
   run_once: true
 
 - name: Exportfs
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: exportfs -ar
   become: true
 
 - name: Set nfs-client as default storage class
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: >
     kubectl patch storageclass nfs-client -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
   run_once: true
@@ -115,6 +121,8 @@
   run_once: true
 
 - name: Install Kubernetes Gateway Resources
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: >
     kubectl get crd gateways.gateway.networking.k8s.io &> /dev/null ||  kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml
   run_once: true
@@ -156,6 +164,8 @@
 
 
 - name: Helm Install Istio Ingress Gateway
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: |
     /usr/local/bin/helm  upgrade istio-ingress gateway -n istio-ingress --repo=https://istio-release.storage.googleapis.com/charts -i  --create-namespace --set service.type=NodePort --set service.ports[0].name=https --set service.ports[0].port=443 --set service.ports[0].targetPort=8443 --set service.ports[0].nodePort={{ istio_ingress_port }}  --skip-schema-validation
   run_once: true
@@ -174,4 +184,6 @@
 
 
 # - name: Apply sample Istio Files
-#   ansible.builtin.command: kubectl apply -f /opt/istio-sample-gw.yaml
+#   register: my_output
+  changed_when: my_output.rc != 0
+  ansible.builtin.command: kubectl apply -f /opt/istio-sample-gw.yaml

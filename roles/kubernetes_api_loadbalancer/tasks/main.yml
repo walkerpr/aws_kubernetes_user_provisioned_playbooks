@@ -6,6 +6,8 @@
     dest: /etc/yum.repos.d/nginx.repo
 
 - name: Disable nginx module
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: dnf -y module disable nginx
 
 # - name: Install nginx
@@ -15,6 +17,8 @@
 #     state: present
 
 - name: Install nginx
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.command: dnf install {{ item }} -y
   loop:
      - nginx
@@ -40,7 +44,9 @@
 #     - "{{ https_port }}/tcp"
 
 # - name: Open Firewalld Port
-#   ansible.builtin.command: firewall-cmd  --add-port={{ item }} --permanent
+#   register: my_output
+  changed_when: my_output.rc != 0
+  ansible.builtin.command: firewall-cmd  --add-port={{ item }} --permanent
 #   loop:
 #     - "{{ api_port }}/tcp"
 #     - "{{ https_ingress_port }}/tcp"

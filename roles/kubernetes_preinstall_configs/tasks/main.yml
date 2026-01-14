@@ -1,7 +1,10 @@
 ---
 # tasks file for kubernetes-preinstall-configs
 - name: Get processor type
-  ansible.builtin.shell: lscpu | grep Architecture | awk -F":" '{print $2}' | xargs
+  changed_when: processor.rc != 0
+  ansible.builtin.shell: |
+    set -o pipefail
+    lscpu | grep Architecture | awk -F":" '{print $2}' | xargs
   register: processor
 
 - name: Set processor_type variable to AMD
@@ -15,6 +18,7 @@
   when: processor.stdout == "aarch64"
 
 - name: Get OS
+  changed_when: os_id.rc != 0
   ansible.builtin.shell: |
     . /etc/os-release
     echo "$ID"

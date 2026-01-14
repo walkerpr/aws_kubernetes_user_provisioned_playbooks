@@ -22,18 +22,21 @@
 
 - name: Copy over sample cert for containerd
   ansible.builtin.copy:
-    src: "/opt/k8s-csr/pki/{{ sample_kub_fqdn}}.crt"
+    mode: preserve
+    src: "/opt/k8s-csr/pki/{{ sample_kub_fqdn }}.crt"
     dest: "/etc/containerd/certs.d/{{ sample_kub_fqdn }}/client.cert"
     remote_src: true
 
 - name: Copy over sample key for contaienerd
   ansible.builtin.copy:
+    mode: preserve
     src: "/opt/k8s-csr/pki/{{ sample_kub_fqdn }}.key"
     dest: "/etc/containerd/certs.d/{{ sample_kub_fqdn }}/client.key"
     remote_src: true
 
 - name: Copy CA bundle for containerd
   ansible.builtin.copy:
+    mode: preserve
     src: "/etc/pki/ca-trust/source/anchors/cabundle.crt"
     dest: "/etc/containerd/certs.d/{{ sample_kub_fqdn }}/ca.crt"
     remote_src: true

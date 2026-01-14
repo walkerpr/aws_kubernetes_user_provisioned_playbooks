@@ -6,6 +6,7 @@
   register: dependencies_key_id
 
 - name: Get ssh key
+
   ansible.builtin.command: >
     aws ssm get-parameter --name /ec2/keypair/{{ dependencies_key_id.stdout }} --query Parameter.Value --with-decryption --output=text
   register: dependencies_ssh_key
@@ -27,9 +28,13 @@
   register: dependencies_key_id
 
 - name: Get ssh key
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: |
     aws ssm get-parameter --name /ec2/keypair/{{ dependencies_key_id.stdout }}/public  --query Parameter.Value --with-decryption --output=text > ~/.ssh/sample-central-services.key.pub
 
 - name: Get ssh key
+  register: my_output
+  changed_when: my_output.rc != 0
   ansible.builtin.shell: |
     aws ssm get-parameter --name /ec2/keypair/{{ dependencies_key_id.stdout }} --query Parameter.Value --with-decryption --output=text > ~/.ssh/sample-central-services.key
