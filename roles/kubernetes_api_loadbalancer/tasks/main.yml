@@ -5,7 +5,7 @@
     src: nginx.repo
     dest: /etc/yum.repos.d/nginx.repo
     mode: preserve
-    
+
 - name: Disable nginx module
   register: my_output
   changed_when: my_output.rc != 0
@@ -22,8 +22,7 @@
   changed_when: my_output.rc != 0
   ansible.builtin.command: dnf install {{ item }} -y
   loop:
-     - nginx
-
+    - nginx
 
 - name: Add nginx.conf
   ansible.builtin.template:
@@ -31,7 +30,7 @@
     dest: /etc/nginx/nginx.conf
     owner: root
     ansible.builtin.group: root
-    mode: '0644'
+    mode: "0644"
 
 # - name: Open Firewalld ports for kubernetes
 #   ansible.posix.firewalld:
@@ -76,7 +75,6 @@
     - "{{ https_ingress_port }}"
     - "{{ istio_ingress_port }}"
     - "{{ https_port }}"
-
 
 - name: Enable and Restart nginx
   ansible.builtin.systemd_service:

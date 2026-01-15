@@ -4,12 +4,10 @@
   changed_when: my_output.rc != 0
   ansible.builtin.command: dnf -y install dnf-plugins-core
 
-
 - name: Add Docker repo
   register: my_output
   changed_when: my_output.rc != 0
   ansible.builtin.command: dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
-
 
 - name: Install docker packages
   register: my_output
@@ -29,19 +27,16 @@
     enabled: true
     state: started
 
-
 - name: Ensure group "docker" exists
   ansible.builtin.group:
     name: docker
     state: present
-
 
 - name: Ensure user is in Docker group
   ansible.builtin.user:
     name: "{{ ansible_user }}"
     groups: docker
     append: true
-
 
 - name: Make new group membership active without starting a new session
   register: my_output

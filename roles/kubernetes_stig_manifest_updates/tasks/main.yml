@@ -6,7 +6,7 @@
     dest: "/etc/kubernetes/manifests/{{ item }}"
     owner: root
     ansible.builtin.group: root
-    mode: '0644'
+    mode: "0644"
   loop:
     - kube-apiserver.yaml
     - kube-controller-manager.yaml
@@ -19,13 +19,13 @@
     dest: /var/lib/kubelet/config.yaml
     owner: root
     ansible.builtin.group: root
-    mode: '0644'
+    mode: "0644"
 
 - name: Create k8s-stigs directory
   ansible.builtin.file:
     path: /etc/kubernetes/k8s-stigs
     state: directory
-    mode: '0755'
+    mode: "0755"
 
 - name: Add Admission Config file
   ansible.builtin.copy:
@@ -51,12 +51,10 @@
   changed_when: my_output.rc != 0
   ansible.builtin.command: kubectl rollout restart daemonset kube-proxy -n kube-system
 
-
 - name: Restart flannel Daemonset
   register: my_output
   changed_when: my_output.rc != 0
   ansible.builtin.command: kubectl rollout restart daemonset kube-flannel-ds -n kube-flannel
-
 
 - name: Restart CoreDNS Deployment
   register: my_output

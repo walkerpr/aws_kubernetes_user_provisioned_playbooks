@@ -54,7 +54,7 @@
   ansible.builtin.template:
     src: kubernetes.repo.j2
     dest: /etc/yum.repos.d/kubernetes.repo
-    mode: '0644'
+    mode: "0644"
 
 # - name: Install kubelet, kubeadm, kubectl
 #   dnf:
@@ -90,16 +90,16 @@
 - name: Initialize Kubernets cluster with kubeadm using lb endpoint
   register: my_output
   changed_when: my_output.rc != 0
-  ansible.builtin.command: kubeadm init --control-plane-endpoint "{{ hostvars['lb']['ansible_host'] }}:{{ api_port }}" --upload-certs --pod-network-cidr="{{ flannel_subnet }}" --v=5
+  ansible.builtin.command: kubeadm init --control-plane-endpoint "{{ hostvars['lb']['ansible_host'] }}:{{ api_port }}" --upload-certs --pod-network-cidr="{{
+    flannel_subnet }}" --v=5
   when: use_lb_endpoint
   become: true
-
 
 - name: Create content & directory
   ansible.builtin.file:
     state: directory
     path: /root/.kube
-    mode: '0644'
+    mode: "0644"
 
 - name: Write kubeadmin file to localhost
   ansible.builtin.copy:
@@ -112,7 +112,6 @@
   ansible.builtin.slurp:
     src: /etc/kubernetes/admin.conf
   register: kubeadmin
-
 
 - name: Write kubeadmin file to localhost
   ansible.builtin.copy:
@@ -131,21 +130,21 @@
 
 - name: Get the current caller identity information
   changed_when: caller_info.rc != 0
-  ansible.builtin.shell: aws sts get-caller-identity --query Account --output text
+  ansible.builtin.command: aws sts get-caller-identity --query Account --output text
   register: caller_info
   delegate_to: localhost
 
 - name: Upload kube file to s3
   register: my_output
   changed_when: my_output.rc != 0
-  ansible.builtin.shell: aws s3 cp /home/ec2-user/.kube/deployment{{ deployment_number }}-kub.conf s3://sample-{{ caller_info.stdout }}-kub/deployment{{ deployment_number }}/kube/config
+  ansible.builtin.command: aws s3 cp /home/ec2-user/.kube/deployment{{ deployment_number }}-kub.conf s3://sample-{{ caller_info.stdout }}-kub/deployment{{
+    deployment_number }}/kube/config
   delegate_to: localhost
 
 - name: Load Flannel Networking Interface
   register: my_output
   changed_when: my_output.rc != 0
   ansible.builtin.command: kubectl apply -f /opt/kube-flannel.yml
-
 
 - name: Remove taint to be able to run workloads on control plane/single node
   register: my_output
@@ -157,7 +156,7 @@
   ansible.builtin.get_url:
     url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
     dest: /opt/get_helm.sh
-    mode: '700'
+    mode: "700"
 
 # - name: Install git (required for Helm)
 #   dnf:
@@ -169,11 +168,11 @@
   changed_when: my_output.rc != 0
   ansible.builtin.command: dnf install {{ item }} -y
   loop:
-     - git
+    - git
 
 - name: Install Helm
   register: my_output
   changed_when: my_output.rc != 0
-  ansible.builtin.shell: /opt/get_helm.sh
+  ansible.builtin.command: /opt/get_helm.sh
   environment:
     PATH: "/usr/local/sbin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/sbin:/usr/local/bin"

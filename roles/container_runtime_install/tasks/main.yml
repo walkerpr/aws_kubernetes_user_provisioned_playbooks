@@ -10,7 +10,7 @@
   ansible.builtin.get_url:
     url: "{{ item.src }}"
     dest: "{{ item.dest }}"
-    mode: '0555'
+    mode: "0555"
   loop: "{{ kubernetes_downloads }}"
 
 - name: Extract Containerd
@@ -23,7 +23,7 @@
   ansible.builtin.file:
     path: /usr/local/lib/systemd/system
     state: directory
-    mode: '0755'
+    mode: "0755"
 
 - name: Copy Containerd Service to systemd
   ansible.builtin.copy:
@@ -38,7 +38,7 @@
     dest: /usr/local/sbin/runc
     owner: root
     ansible.builtin.group: root
-    mode: '0755'
+    mode: "0755"
     remote_src: true
 
 - name: Create link for containerd
@@ -57,7 +57,7 @@
   ansible.builtin.file:
     path: /etc/containerd
     state: directory
-    mode: '0755'
+    mode: "0755"
 
 - name: Store Default containerd config in /etc/containerd
   changed_when: my_output.rc != 0
@@ -69,8 +69,8 @@
 - name: Set SystemdCgroup to true in config.toml
   ansible.builtin.replace:
     path: /etc/containerd/config.toml
-    regexp: 'SystemdCgroup = false'
-    ansible.builtin.replace: 'SystemdCgroup = true'
+    regexp: "SystemdCgroup = false"
+    ansible.builtin.replace: "SystemdCgroup = true"
   become: true
 
 - name: Enable containerd and issue daemon-reload to pick up config changes

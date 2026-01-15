@@ -10,7 +10,7 @@
 - name: EXPORT KUBECONFIG to bashrc
   ansible.builtin.lineinfile:
     path: ~/.bashrc
-    line: 'export KUBECONFIG=/etc/kubernetes/admin.conf'
+    line: "export KUBECONFIG=/etc/kubernetes/admin.conf"
     state: present
 
 - name: EXPORT local/bin PATH to bashrc
@@ -18,7 +18,6 @@
     path: ~/.bashrc
     line: 'export PATH="/usr/local/bin:$PATH"'
     state: present
-
 
 - name: Reboot to finalize changes.
   ansible.builtin.reboot:

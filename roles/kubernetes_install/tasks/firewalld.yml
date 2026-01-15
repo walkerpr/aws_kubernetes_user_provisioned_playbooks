@@ -1,3 +1,4 @@
+---
 - name: Get Virtual Eth
   changed_when: veth_interfaces.rc != 0
   ansible.builtin.shell: |
@@ -12,23 +13,20 @@
     ip link list | awk '{print $2}' | grep cni | sed s/://g
   register: cni_interfaces
 
-
 - name: Setup VETH Firewalld Zone
   register: my_output
   changed_when: my_output.rc != 0
-  ansible.builtin.command:  firewall-cmd  --new-zone=k8s-veth --permanent
+  ansible.builtin.command: firewall-cmd  --new-zone=k8s-veth --permanent
 
 - name: Setup CNI Firewalld Zone
   register: my_output
   changed_when: my_output.rc != 0
-  ansible.builtin.command:  firewall-cmd  --new-zone=k8s-cni --permanent
-
+  ansible.builtin.command: firewall-cmd  --new-zone=k8s-cni --permanent
 
 - name: Setup K8s Forward Policy
   register: my_output
   changed_when: my_output.rc != 0
   ansible.builtin.command: firewall-cmd  --new-policy=k8s-forward-net --permanent
-
 
 - name: Setup K8s Forward Policy 2
   register: my_output
@@ -53,13 +51,13 @@
 - name: Add VETH to Zone
   register: my_output
   changed_when: my_output.rc != 0
-  ansible.builtin.shell:  firewall-cmd  --zone=k8s-veth --add-interface={{ item }}
+  ansible.builtin.command: firewall-cmd  --zone=k8s-veth --add-interface={{ item }}
   loop: "{{ veth_interfaces.stdout_lines }}"
 
 - name: Add CNI to Zone
   register: my_output
   changed_when: my_output.rc != 0
-  ansible.builtin.shell:  firewall-cmd  --zone=k8s-cni --add-interface={{ item }}
+  ansible.builtin.command: firewall-cmd  --zone=k8s-cni --add-interface={{ item }}
   loop: "{{ cni_interfaces.stdout_lines }}"
 
 - name: Setup Firewalld for Kubernetes

@@ -32,9 +32,9 @@ k8s_etcd_certs:
     crt: "server.crt"
 
 k8s_ca_certs:
-- crt: "/etc/kubernetes/pki/ca.crt"
-- crt: "/etc/kubernetes/pki/front-proxy-ca.crt"
-- crt: "/etc/kubernetes/pki/etcd/ca.crt"
+  - crt: "/etc/kubernetes/pki/ca.crt"
+  - crt: "/etc/kubernetes/pki/front-proxy-ca.crt"
+  - crt: "/etc/kubernetes/pki/etcd/ca.crt"
 
 k8s_conf_files:
   - file: "admin.conf"

@@ -1,3 +1,7 @@
-roles/container_runtime_install/vars/main.yml yaml
-roles/kubernetes_cluster_services/tasks/main.yml yaml
-roles/kubernetes_stig_manifest_updates/vars/main.yml yaml
+# This file contains ignores rule violations for ansible-lint
+roles/container_runtime_install/vars/main.yml yaml[line-length]
+roles/dependencies/tasks/ssh.yml yaml[line-length]
+roles/image_registry_deploy/tasks/main.yml yaml[line-length]
+roles/kubernetes_cert_rotation/tasks/main.yml command-instead-of-shell
+roles/kubernetes_cluster_services/tasks/main.yml yaml[line-length]
+roles/kubernetes_stig_manifest_updates/vars/main.yml yaml[line-length]

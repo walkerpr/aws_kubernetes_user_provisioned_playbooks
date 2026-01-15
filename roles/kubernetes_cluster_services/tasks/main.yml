@@ -1,3 +1,4 @@
+---
 # - name: Install nfs-utils
 #   dnf:
 #     name:
@@ -10,13 +11,13 @@
   changed_when: my_output.rc != 0
   ansible.builtin.command: dnf install {{ item }} -y
   loop:
-     - nfs-utils
+    - nfs-utils
 
 - name: Create nfs dir
   ansible.builtin.file:
     path: /srv/nfs
     state: directory
-    mode: '0755'
+    mode: "0755"
 
 - name: Add nfs-client /etc/export entry
   ansible.builtin.lineinfile:
@@ -24,7 +25,7 @@
     line: "/srv/nfs {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}(rw,no_subtree_check,no_root_squash)"
     state: present
     create: true
-    mode: '0664'
+    mode: "0664"
 
 - name: Enable nfs-server service
   ansible.builtin.systemd_service:
@@ -34,15 +35,15 @@
 
 - name: Add graceful shutdown period information to kubelet configuration
   ansible.builtin.replace:
-    path:  /var/lib/kubelet/config.yaml
-    regexp: 'shutdownGracePeriod: 0s'
-    ansible.builtin.replace: 'shutdownGracePeriod: 120s'
+    path: /var/lib/kubelet/config.yaml
+    regexp: "shutdownGracePeriod: 0s"
+    ansible.builtin.replace: "shutdownGracePeriod: 120s"
 
 - name: Add graceful pod shutdown period information to kubelet configuration
   ansible.builtin.replace:
-    path:  /var/lib/kubelet/config.yaml
-    regexp: 'shutdownGracePeriodCriticalPods: 0s'
-    ansible.builtin.replace: 'shutdownGracePeriodCriticalPods: 120s'
+    path: /var/lib/kubelet/config.yaml
+    regexp: "shutdownGracePeriodCriticalPods: 0s"
+    ansible.builtin.replace: "shutdownGracePeriodCriticalPods: 120s"
 
 - name: Helm Install Nfs-provisioner for nfs storage class
   kubernetes.core.helm:
@@ -94,7 +95,7 @@
   ansible.builtin.get_url:
     url: "https://github.com/derailed/k9s/releases/download/{{ k9s_version }}/k9s_Linux_{{ processor_type }}.tar.gz"
     dest: "/opt/k9s_Linux_{{ processor_type }}.tar.gz"
-    mode: '0664'
+    mode: "0664"
 
 - name: Extract k9s
   ansible.builtin.unarchive:
@@ -106,7 +107,7 @@
   ansible.builtin.copy:
     src: "/opt/k9s"
     dest: "/usr/local/bin/k9s"
-    mode: '0755'
+    mode: "0755"
     remote_src: true
 
 - name: Helm Install metrics-server
@@ -164,17 +165,12 @@
 #   environment:
 #     KUBECONFIG: /etc/kubernetes/admin.conf
 
-
 - name: Helm Install Istio Ingress Gateway
   register: my_output
   changed_when: my_output.rc != 0
   ansible.builtin.shell: |
     /usr/local/bin/helm  upgrade istio-ingress gateway -n istio-ingress --repo=https://istio-release.storage.googleapis.com/charts -i  --create-namespace --set service.type=NodePort --set service.ports[0].name=https --set service.ports[0].port=443 --set service.ports[0].targetPort=8443 --set service.ports[0].nodePort={{ istio_ingress_port }}  --skip-schema-validation
   run_once: true
-
-
-
-
 
 # - name: Add sample Istio Files
 #   ansible.builtin.template:
@@ -183,7 +179,6 @@
 #     owner: root
 #     ansible.builtin.group: root
 #     mode: '0644'
-
 
 # - name: Apply sample Istio Files
 #   register: my_output

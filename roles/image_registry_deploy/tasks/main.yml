@@ -1,11 +1,10 @@
 ---
-- name:  Check if server certificates exist
+- name: Check if server certificates exist
   ansible.builtin.find:
     paths: "roles/image-registry-deploy/files/certs/dev/d{{ deployment_number }}/server"
-    recurse: no
+    recurse: false
   delegate_to: localhost
   register: certificates_exists
-
 
 - name: Get latest DoD CA Certs
   register: my_output
@@ -52,7 +51,6 @@
   ansible.builtin.command: "update-ca-trust extract"
   become: true
 
-
 - name: Copy server certs
   ansible.builtin.copy:
     mode: preserve
@@ -73,14 +71,14 @@
 
 - name: Create cert directory
   ansible.builtin.file:
-    mode: '0770'
+    mode: "0770"
     state: directory
     path: "/etc/docker/certs.d/{{ image_registry_fqdn }}"
   delegate_to: localhost
 
 - name: Create cert directory
   ansible.builtin.file:
-    mode: '0770'
+    mode: "0770"
     state: directory
     path: "/etc/docker/certs.d/services.devops.sample.sample.mil"
   delegate_to: localhost
@@ -119,7 +117,6 @@
     kubectl create secret docker-registry image-pull-secret --docker-server="{{ registry_url }}" --docker-username=$ARTIFACTORY_USERNAME --docker-password=$ARTIFACTORY_PASSWORD --namespace docker-registry
   run_once: true
 
-
 # - name: Create registry-credentials secret
 #   k8s:
 #     definition: "{{ lookup('template', registry_secret_manifest) }}"
@@ -149,7 +146,6 @@
     kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "image-pull-secret"}]}' --namespace=docker-registry
   run_once: true
 
-
 - name: Get image registry cert
   ansible.builtin.slurp:
     src: /opt/{{ image_registry_fqdn }}.crt
@@ -174,7 +170,6 @@
         tls.crt: "{{ registry_cert.content }}"
         tls.key: "{{ registry_key.content }}"
   run_once: true
-
 
 # - name: Create Image Registry TLS secret
 #   register: my_output
@@ -219,7 +214,7 @@
     dest: /opt/registry-ingress.yaml
     owner: root
     ansible.builtin.group: root
-    mode: '0644'
+    mode: "0644"
 
 # - name: Add registry-values.yaml
 #   ansible.builtin.template:

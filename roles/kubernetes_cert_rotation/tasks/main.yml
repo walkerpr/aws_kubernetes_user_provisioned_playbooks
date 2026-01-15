@@ -4,7 +4,7 @@
   ansible.builtin.file:
     path: /etc/kubernetes/k8s-stigs
     state: directory
-    mode: '0755'
+    mode: "0755"
 
 - name: Copy CRBs for post rotation access
   ansible.builtin.copy:
@@ -22,7 +22,7 @@
     dest: /etc/kubernetes/k8s-stigs/k8s-admincrb.yaml
     owner: root
     ansible.builtin.group: root
-    mode: '0644'
+    mode: "0644"
 
 - name: Apply all CRBs for post rotation access
   register: my_output
@@ -33,7 +33,6 @@
     - k8s-viewlogscrb.yaml
     - kubeletcrb.yaml
     - kubeletnodescrb.yaml
-
 
 - name: Copy over signed .conf certs
   ansible.builtin.copy:
@@ -149,31 +148,31 @@
   register: my_output
   changed_when: my_output.rc != 0
   ansible.builtin.shell: |
-     KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-cluster {{ k8s_cluster_name }} \
-     --server=https://{{ hostvars['cp']['ansible_host'] }}:{{ api_port }} \
-     --certificate-authority /etc/kubernetes/pki/ca.crt --embed-certs
+    KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-cluster {{ k8s_cluster_name }} \
+    --server=https://{{ hostvars['cp']['ansible_host'] }}:{{ api_port }} \
+    --certificate-authority /etc/kubernetes/pki/ca.crt --embed-certs
   loop: "{{ k8s_conf_files }}"
 
 - name: Embed client certs into Conf Files
   register: my_output
   changed_when: my_output.rc != 0
   ansible.builtin.shell: |
-     KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-credentials {{ item.user }} \
-     --client-certificate /opt/k8s-csr/conf/{{ item.crt }} --embed-certs
+    KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-credentials {{ item.user }} \
+    --client-certificate /opt/k8s-csr/conf/{{ item.crt }} --embed-certs
   loop: "{{ k8s_conf_files }}"
 
 - name: Update Context Users
   register: my_output
   changed_when: my_output.rc != 0
   ansible.builtin.shell: |
-     KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-context {{ k8s_cluster_context }} \
-     --cluster {{ k8s_cluster_name }} \
-     --user {{ item.user }}
+    KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config set-context {{ k8s_cluster_context }} \
+    --cluster {{ k8s_cluster_name }} \
+    --user {{ item.user }}
   loop: "{{ k8s_conf_files }}"
 
 - name: Update Which Context is Used
   register: my_output
   changed_when: my_output.rc != 0
   ansible.builtin.shell: |
-     KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config use-context {{ k8s_cluster_context }} \
+    KUBECONFIG=/etc/kubernetes/{{ item.file }} kubectl config use-context {{ k8s_cluster_context }} \
   loop: "{{ k8s_conf_files }}"
